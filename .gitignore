@@ -216,3 +216,48 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# Flutter / Dart
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+.packages
+!app/lib/
+!app/lib/**
+app/.metadata
+app/build/
+app/coverage/
+
+# Android
+*.apk
+*.aab
+*.ap_
+*.dex
+*.class
+*.keystore
+*.jks
+app/android/.gradle/
+app/android/local.properties
+app/android/key.properties
+app/android/app/build/
+
+# iOS
+app/ios/Flutter/Flutter.framework
+app/ios/Flutter/Flutter.podspec
+app/ios/Flutter/Generated.xcconfig
+app/ios/Flutter/ephemeral/
+app/ios/Pods/
+app/ios/.symlinks/
+app/ios/build/
+app/ios/Runner.xcworkspace/
+
+# Rust
+core/target/
+Cargo.lock
+
+# Local app state
+data/
+logs/
+*.db
+*.sqlite
+*.sqlite3

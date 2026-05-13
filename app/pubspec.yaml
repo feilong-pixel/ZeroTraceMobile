@@ -1,0 +1,23 @@
+name: zerotrace_mobile
+description: Local-first duplicate photo and similar image cleanup app.
+publish_to: none
+version: 0.1.0+1
+
+environment:
+  sdk: ">=3.4.0 <4.0.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  flutter_localizations:
+    sdk: flutter
+  path: ^1.9.0
+  sqflite: ^2.3.3+1
+
+dev_dependencies:
+  flutter_lints: ^4.0.0
+  flutter_test:
+    sdk: flutter
+
+flutter:
+  uses-material-design: true
