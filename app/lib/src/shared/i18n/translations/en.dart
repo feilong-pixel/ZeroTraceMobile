@@ -1,5 +1,5 @@
 const enMessages = {
-  'app.title': 'ZeroTraceMobile',
+  'app.title': 'ExtraSync',
   'nav.settings': 'Settings',
   'dashboard.tagline':
       'Send phone photos to ZeroTraceBrowser over local Wi-Fi.',
@@ -76,7 +76,7 @@ const enMessages = {
   'sync.errorTokenExpired':
       'The sync token is invalid or expired. Generate a new pairing QR on the PC and pair again.',
   'sync.errorPermission':
-      'Photo permission is unavailable. Allow ZeroTraceMobile photo access in Android settings.',
+      'Photo permission is unavailable. Allow ExtraSync photo access in Android settings.',
   'sync.errorUploadRead':
       'Could not read the original photo. It may have moved, been deleted, or Android denied access.',
   'sync.errorServer': 'PC returned an error: {detail}',

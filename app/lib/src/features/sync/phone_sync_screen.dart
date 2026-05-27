@@ -58,7 +58,7 @@ class _PhoneSyncScreenState extends State<PhoneSyncScreen> {
   int _autoFailureCount = 0;
 
   static const _deviceId = 'zerotrace-mobile-local-device';
-  static const _deviceName = 'ZeroTraceMobile';
+  static const _deviceName = 'ExtraSync';
   static const _manifestBatchSize = 10;
   static const _maxRecentFailures = 5;
 

@@ -1,13 +1,49 @@
 import 'package:flutter/material.dart';
 
+import '../../app/app_settings_scope.dart';
+import '../../shared/i18n/app_language.dart';
 import '../../shared/i18n/app_localizations.dart';
 
 class SettingsScreen extends StatelessWidget {
   const SettingsScreen({super.key});
 
+  Future<void> _showLanguagePicker(BuildContext context) async {
+    final settings = AppSettingsScope.of(context);
+    final selected = await showDialog<AppLanguage>(
+      context: context,
+      builder: (context) {
+        final l10n = context.l10n;
+        return SimpleDialog(
+          title: Text(l10n.text('settings.language.title')),
+          children: [
+            RadioGroup<AppLanguage>(
+              groupValue: settings.language,
+              onChanged: (value) => Navigator.of(context).pop(value),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  for (final language in AppLanguage.values)
+                    RadioListTile<AppLanguage>(
+                      value: language,
+                      title: Text(language.displayName),
+                    ),
+                ],
+              ),
+            ),
+          ],
+        );
+      },
+    );
+    if (selected == null || selected == settings.language) {
+      return;
+    }
+    settings.onLanguageChanged(selected);
+  }
+
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
+    final settings = AppSettingsScope.of(context);
 
     return Scaffold(
       appBar: AppBar(title: Text(l10n.text('settings.title'))),
@@ -16,7 +52,9 @@ class SettingsScreen extends StatelessWidget {
           ListTile(
             leading: const Icon(Icons.language_outlined),
             title: Text(l10n.text('settings.language.title')),
-            subtitle: Text(l10n.text('settings.language.subtitle')),
+            subtitle: Text(settings.language.displayName),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: () => _showLanguagePicker(context),
           ),
           SwitchListTile(
             value: true,

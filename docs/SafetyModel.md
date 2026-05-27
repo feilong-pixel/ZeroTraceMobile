@@ -1,6 +1,6 @@
 # Safety Model
 
-ZeroTraceMobile is currently an upload client, not a cleanup tool.
+ExtraSync is currently an upload client, not a cleanup tool.
 
 ## Guarantees
 

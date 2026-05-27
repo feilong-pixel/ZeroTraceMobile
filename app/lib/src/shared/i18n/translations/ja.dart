@@ -1,5 +1,5 @@
 const jaMessages = {
-  'app.title': 'ZeroTraceMobile',
+  'app.title': 'すごい転送',
   'nav.settings': '設定',
   'dashboard.tagline': 'ローカル Wi-Fi でスマホ写真を ZeroTraceBrowser に送信します。',
   'dashboard.phoneSync': 'スマホ同期',
@@ -66,8 +66,7 @@ const jaMessages = {
       'PC に接続できません。同じ Wi-Fi 上にあり、PC 側サービスが起動していて、ペアリング URL が localhost でないことを確認してください。',
   'sync.errorTokenExpired':
       '同期トークンが無効または期限切れです。PC 側で新しい QR を生成し、再度 Pair してください。',
-  'sync.errorPermission':
-      '写真権限を利用できません。Android 設定で ZeroTraceMobile の写真アクセスを許可してください。',
+  'sync.errorPermission': '写真権限を利用できません。Android 設定ですごい転送の写真アクセスを許可してください。',
   'sync.errorUploadRead':
       '元写真を読み取れません。写真が移動、削除されたか、Android がアクセスを拒否した可能性があります。',
   'sync.errorServer': 'PC 側エラー: {detail}',

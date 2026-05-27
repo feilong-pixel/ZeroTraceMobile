@@ -1,6 +1,6 @@
 # Product Design
 
-ZeroTraceMobile is a focused phone companion for ZeroTraceBrowser. The first
+ExtraSync is a focused phone companion for ZeroTraceBrowser. The first
 shipping version uploads original phone photos to a paired PC over local Wi-Fi.
 
 ## Purpose

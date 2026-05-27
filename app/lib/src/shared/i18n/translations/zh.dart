@@ -1,5 +1,5 @@
 const zhMessages = {
-  'app.title': 'ZeroTraceMobile',
+  'app.title': '非常传输',
   'nav.settings': '设置',
   'dashboard.tagline': '通过本地 Wi-Fi 将手机照片发送到 ZeroTraceBrowser。',
   'dashboard.phoneSync': '手机同步',
@@ -65,7 +65,7 @@ const zhMessages = {
   'sync.errorPcUnreachable':
       '无法连接 PC。请确认手机和 PC 在同一 Wi-Fi，PC 端服务正在运行，配对地址不是 localhost。',
   'sync.errorTokenExpired': '同步令牌无效或已过期。请在 PC 端重新生成配对二维码，并在手机上重新 Pair。',
-  'sync.errorPermission': '照片权限不可用。请在 Android 设置中允许 ZeroTraceMobile 访问照片。',
+  'sync.errorPermission': '照片权限不可用。请在 Android 设置中允许非常传输访问照片。',
   'sync.errorUploadRead': '读取手机原图失败。该照片可能已被移动、删除，或 Android 不允许访问。',
   'sync.errorServer': 'PC 端返回错误：{detail}',
   'sync.savedTarget': '已保存目标',

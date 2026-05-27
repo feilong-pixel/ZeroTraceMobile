@@ -18,4 +18,11 @@ enum AppLanguage {
       orElse: () => fallback,
     );
   }
+
+  static AppLanguage fromLanguageCode(String? languageCode) {
+    return AppLanguage.values.firstWhere(
+      (language) => language.locale.languageCode == languageCode,
+      orElse: () => fallback,
+    );
+  }
 }

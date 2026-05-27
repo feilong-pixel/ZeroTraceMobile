@@ -1,7 +1,7 @@
-# ZeroTraceMobile Phone Sync Client Handbook
+# ExtraSync Phone Sync Client Handbook
 
 This file is a compact handoff note for implementing the phone-side client in
-ZeroTraceMobile. The desktop implementation lives in ZeroTraceBrowser.
+ExtraSync. The desktop implementation lives in ZeroTraceBrowser.
 
 Main reference:
 

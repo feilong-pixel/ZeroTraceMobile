@@ -1,6 +1,6 @@
 # Roadmap
 
-This roadmap keeps ZeroTraceMobile focused on phone-to-PC photo upload.
+This roadmap keeps ExtraSync focused on phone-to-PC photo upload.
 
 ## 1. Android Upload Client
 

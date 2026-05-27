@@ -1,6 +1,6 @@
 # App Layer
 
-This directory contains the Flutter Android app for ZeroTraceMobile.
+This directory contains the Flutter Android app for ExtraSync.
 
 The app layer owns:
 
