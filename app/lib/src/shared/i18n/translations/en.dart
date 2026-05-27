@@ -17,9 +17,17 @@ const enMessages = {
       'Not available yet. Detection will be planned after upload is stable.',
   'settings.language.title': 'Language',
   'settings.language.subtitle': 'English, Chinese, Japanese',
+  'settings.theme.title': 'Theme',
+  'settings.theme.system': 'Follow system',
+  'settings.theme.light': 'Light',
+  'settings.theme.dark': 'Dark',
   'sync.title': 'Phone Sync',
   'sync.intro':
       'Pair with ZeroTraceBrowser and upload original photos over local Wi-Fi.',
+  'sync.pairingIntro':
+      'Pair this phone with ZeroTraceBrowser before starting photo sync.',
+  'sync.readyIntro':
+      'This phone is paired. Start a sync batch or run automatic sync.',
   'sync.pairingPayload': 'Pairing QR payload JSON',
   'sync.savePairing': 'Save Pairing',
   'sync.pairAndSave': 'Pair and Save',
@@ -29,9 +37,11 @@ const enMessages = {
       'Point the camera at the ZeroTraceBrowser pairing QR on the PC.',
   'sync.scanQrFilled':
       'QR recognized and pairing JSON filled. Review it, then tap Pair and Save.',
-  'sync.sendManifest': 'Send Manifest Batch',
-  'sync.autoSync': 'Auto Sync',
-  'sync.stopAutoSync': 'Stop',
+  'sync.sendManifest': 'Sync Once',
+  'sync.autoSync': 'Start Sync',
+  'sync.stopAutoSync': 'Stop Sync',
+  'sync.stoppingAutoSync': 'Stopping...',
+  'sync.changePairing': 'Pair Another PC',
   'sync.pairingSaved': 'Pairing payload saved.',
   'sync.pairFirst': 'Pair with ZeroTraceBrowser before sending a manifest.',
   'sync.photoPermissionDenied': 'Photo permission is not available.',

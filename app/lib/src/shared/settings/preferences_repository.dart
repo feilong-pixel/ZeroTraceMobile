@@ -27,12 +27,14 @@ class SharedPreferencesRepository implements PreferencesRepository {
   const SharedPreferencesRepository();
 
   static const _languageCodeKey = 'language_code';
+  static const _themeModeKey = 'theme_mode';
 
   @override
   Future<AppPreferences> load() async {
     final preferences = await SharedPreferences.getInstance();
     return AppPreferences(
       languageCode: preferences.getString(_languageCodeKey),
+      themeMode: _themeModeFromStorage(preferences.getString(_themeModeKey)),
     );
   }
 
@@ -42,8 +44,16 @@ class SharedPreferencesRepository implements PreferencesRepository {
     final languageCode = preferences.languageCode;
     if (languageCode == null || languageCode.isEmpty) {
       await storage.remove(_languageCodeKey);
-      return;
+    } else {
+      await storage.setString(_languageCodeKey, languageCode);
     }
-    await storage.setString(_languageCodeKey, languageCode);
+    await storage.setString(_themeModeKey, preferences.themeMode.name);
+  }
+
+  AppThemeMode _themeModeFromStorage(String? value) {
+    return AppThemeMode.values.firstWhere(
+      (mode) => mode.name == value,
+      orElse: () => AppThemeMode.system,
+    );
   }
 }

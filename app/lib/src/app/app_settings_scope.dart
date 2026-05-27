@@ -1,17 +1,22 @@
 import 'package:flutter/widgets.dart';
 
 import '../shared/i18n/app_language.dart';
+import '../shared/settings/app_preferences.dart';
 
 class AppSettingsScope extends InheritedWidget {
   const AppSettingsScope({
     super.key,
     required this.language,
     required this.onLanguageChanged,
+    required this.themeMode,
+    required this.onThemeModeChanged,
     required super.child,
   });
 
   final AppLanguage language;
   final ValueChanged<AppLanguage> onLanguageChanged;
+  final AppThemeMode themeMode;
+  final ValueChanged<AppThemeMode> onThemeModeChanged;
 
   static AppSettingsScope of(BuildContext context) {
     final scope =
@@ -23,6 +28,8 @@ class AppSettingsScope extends InheritedWidget {
   @override
   bool updateShouldNotify(AppSettingsScope oldWidget) {
     return language != oldWidget.language ||
-        onLanguageChanged != oldWidget.onLanguageChanged;
+        onLanguageChanged != oldWidget.onLanguageChanged ||
+        themeMode != oldWidget.themeMode ||
+        onThemeModeChanged != oldWidget.onThemeModeChanged;
   }
 }

@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
@@ -138,7 +139,7 @@ class _PhoneSyncScreenState extends State<PhoneSyncScreen> {
       return;
     }
     setState(() {
-      _payloadController.text = result.trim();
+      _payloadController.text = _formatPayloadForDisplay(result);
       _message = context.l10n.text('sync.scanQrFilled');
     });
   }
@@ -744,6 +745,27 @@ class _PhoneSyncScreenState extends State<PhoneSyncScreen> {
     setState(() {});
   }
 
+  void _changePairing() {
+    if (_syncInProgress) {
+      return;
+    }
+    setState(() {
+      _target = null;
+      _message = null;
+      _payloadController.clear();
+    });
+  }
+
+  String _formatPayloadForDisplay(String rawPayload) {
+    final trimmed = rawPayload.trim();
+    try {
+      final decoded = jsonDecode(trimmed);
+      return const JsonEncoder.withIndent('  ').convert(decoded);
+    } on FormatException {
+      return trimmed;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
@@ -764,139 +786,277 @@ class _PhoneSyncScreenState extends State<PhoneSyncScreen> {
         appBar: AppBar(
           title: Text(l10n.text('sync.title')),
         ),
-        body: ListView(
-          padding: const EdgeInsets.all(16),
+        body: target == null
+            ? _PairingView(
+                payloadController: _payloadController,
+                isPairing: _isPairing,
+                message: _message,
+                onPayloadChanged: _onPayloadChanged,
+                onPair: _pairAction(),
+                onScanQr: _scanQrAction(),
+                buttonProgress: _buttonProgress,
+              )
+            : _SyncView(
+                target: target,
+                message: _message,
+                syncPhase: _syncPhase,
+                syncComplete: _syncComplete,
+                recentFailures: _recentFailures,
+                uploadProgressText: _uploadProgressText(l10n),
+                autoMessage: _autoMessage(l10n),
+                manifestCountText: _manifestCountText(l10n),
+                formattedLastSyncedAt: _formatDate(target.lastSyncedAt),
+                formattedSyncToken: _formatToken(target.syncToken),
+                isSendingManifest: _isSendingManifest,
+                isAutoSyncing: _isAutoSyncing,
+                isStoppingAutoSync: _stopAutoSyncRequested,
+                onSendManifest: _manifestAction(),
+                onAutoSync: _autoSyncAction(),
+                onStopAutoSync: _isAutoSyncing && !_stopAutoSyncRequested
+                    ? _stopAutoSync
+                    : null,
+                onChangePairing: _syncInProgress ? null : _changePairing,
+                buttonProgress: _buttonProgress,
+              ),
+      ),
+    );
+  }
+}
+
+class _PairingView extends StatelessWidget {
+  const _PairingView({
+    required this.payloadController,
+    required this.isPairing,
+    required this.message,
+    required this.onPayloadChanged,
+    required this.onPair,
+    required this.onScanQr,
+    required this.buttonProgress,
+  });
+
+  final TextEditingController payloadController;
+  final bool isPairing;
+  final String? message;
+  final ValueChanged<String> onPayloadChanged;
+  final VoidCallback? onPair;
+  final VoidCallback? onScanQr;
+  final Widget Function() buttonProgress;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = context.l10n;
+    return ListView(
+      padding: const EdgeInsets.all(16),
+      children: [
+        Text(
+          l10n.text('sync.pairingIntro'),
+          style: Theme.of(context).textTheme.bodyLarge,
+        ),
+        const SizedBox(height: 16),
+        TextField(
+          controller: payloadController,
+          onChanged: onPayloadChanged,
+          minLines: 5,
+          maxLines: 12,
+          style: const TextStyle(fontFamily: 'monospace'),
+          decoration: InputDecoration(
+            labelText: l10n.text('sync.pairingPayload'),
+            border: const OutlineInputBorder(),
+          ),
+        ),
+        const SizedBox(height: 12),
+        Wrap(
+          spacing: 8,
+          runSpacing: 8,
           children: [
-            Text(
-              l10n.text('sync.intro'),
-              style: Theme.of(context).textTheme.bodyLarge,
+            FilledButton.icon(
+              onPressed: onPair,
+              icon: isPairing
+                  ? buttonProgress()
+                  : const Icon(Icons.qr_code_scanner_outlined),
+              label: Text(l10n.text('sync.pairAndSave')),
             ),
-            const SizedBox(height: 16),
-            TextField(
-              controller: _payloadController,
-              onChanged: _onPayloadChanged,
-              minLines: 5,
-              maxLines: 8,
-              decoration: InputDecoration(
-                labelText: l10n.text('sync.pairingPayload'),
-                border: const OutlineInputBorder(),
+            OutlinedButton.icon(
+              onPressed: onScanQr,
+              icon: const Icon(Icons.qr_code_2_outlined),
+              label: Text(l10n.text('sync.scanQr')),
+            ),
+          ],
+        ),
+        if (message != null) ...[
+          const SizedBox(height: 12),
+          Text(message!),
+        ],
+      ],
+    );
+  }
+}
+
+class _SyncView extends StatelessWidget {
+  const _SyncView({
+    required this.target,
+    required this.message,
+    required this.syncPhase,
+    required this.syncComplete,
+    required this.recentFailures,
+    required this.uploadProgressText,
+    required this.autoMessage,
+    required this.manifestCountText,
+    required this.formattedLastSyncedAt,
+    required this.formattedSyncToken,
+    required this.isSendingManifest,
+    required this.isAutoSyncing,
+    required this.isStoppingAutoSync,
+    required this.onSendManifest,
+    required this.onAutoSync,
+    required this.onStopAutoSync,
+    required this.onChangePairing,
+    required this.buttonProgress,
+  });
+
+  final SyncTarget target;
+  final String? message;
+  final String? syncPhase;
+  final bool syncComplete;
+  final List<String> recentFailures;
+  final String uploadProgressText;
+  final String autoMessage;
+  final String manifestCountText;
+  final String formattedLastSyncedAt;
+  final String formattedSyncToken;
+  final bool isSendingManifest;
+  final bool isAutoSyncing;
+  final bool isStoppingAutoSync;
+  final VoidCallback? onSendManifest;
+  final VoidCallback? onAutoSync;
+  final VoidCallback? onStopAutoSync;
+  final VoidCallback? onChangePairing;
+  final Widget Function() buttonProgress;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = context.l10n;
+    return ListView(
+      padding: const EdgeInsets.all(16),
+      children: [
+        Text(
+          l10n.text('sync.readyIntro'),
+          style: Theme.of(context).textTheme.bodyLarge,
+        ),
+        const SizedBox(height: 16),
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            if (isAutoSyncing)
+              FilledButton.icon(
+                onPressed: onStopAutoSync,
+                icon: isStoppingAutoSync
+                    ? buttonProgress()
+                    : const Icon(Icons.stop_circle_outlined),
+                label: Text(
+                  l10n.text(
+                    isStoppingAutoSync
+                        ? 'sync.stoppingAutoSync'
+                        : 'sync.stopAutoSync',
+                  ),
+                ),
+              )
+            else
+              FilledButton.icon(
+                onPressed: onAutoSync,
+                icon: const Icon(Icons.play_arrow_outlined),
+                label: Text(l10n.text('sync.autoSync')),
               ),
-            ),
-            const SizedBox(height: 12),
-            Wrap(
-              spacing: 8,
-              runSpacing: 8,
+            const SizedBox(height: 8),
+            Row(
               children: [
-                FilledButton.icon(
-                  onPressed: _pairAction(),
-                  icon: _isPairing
-                      ? _buttonProgress()
-                      : const Icon(Icons.qr_code_scanner_outlined),
-                  label: Text(l10n.text('sync.pairAndSave')),
+                Expanded(
+                  child: FilledButton.tonalIcon(
+                    onPressed: onSendManifest,
+                    icon: isSendingManifest
+                        ? buttonProgress()
+                        : const Icon(Icons.cloud_upload_outlined),
+                    label: Text(l10n.text('sync.sendManifest')),
+                  ),
                 ),
-                OutlinedButton.icon(
-                  onPressed: _scanQrAction(),
-                  icon: const Icon(Icons.qr_code_2_outlined),
-                  label: Text(l10n.text('sync.scanQr')),
-                ),
-                FilledButton.tonalIcon(
-                  onPressed: _manifestAction(),
-                  icon: _isSendingManifest
-                      ? _buttonProgress()
-                      : const Icon(Icons.cloud_upload_outlined),
-                  label: Text(l10n.text('sync.sendManifest')),
-                ),
-                FilledButton.tonalIcon(
-                  onPressed: _autoSyncAction(),
-                  icon: _isAutoSyncing
-                      ? _buttonProgress()
-                      : const Icon(Icons.sync_outlined),
-                  label: Text(l10n.text('sync.autoSync')),
-                ),
-                OutlinedButton.icon(
-                  onPressed: _isAutoSyncing ? _stopAutoSync : null,
-                  icon: const Icon(Icons.stop_circle_outlined),
-                  label: Text(l10n.text('sync.stopAutoSync')),
-                ),
-              ],
-            ),
-            if (_message != null) ...[
-              const SizedBox(height: 12),
-              Text(_message!),
-            ],
-            const SizedBox(height: 20),
-            _StatusCard(
-              title: l10n.text('sync.progressTitle'),
-              rows: [
-                _StatusRow(l10n.text('sync.phase'), _syncPhase ?? '-'),
-                _StatusRow(
-                  l10n.text('sync.uploadProgress'),
-                  _uploadProgressText(l10n),
-                ),
-                _StatusRow(
-                  l10n.text('sync.autoTotals'),
-                  _autoMessage(l10n),
-                ),
-                _StatusRow(
-                  l10n.text('sync.resumePolicy'),
-                  l10n.text('sync.resumePolicyValue'),
-                ),
-                _StatusRow(
-                  l10n.text('sync.completeStatus'),
-                  _syncComplete ? l10n.text('sync.completeYes') : '-',
-                ),
-              ],
-            ),
-            if (_recentFailures.isNotEmpty) ...[
-              const SizedBox(height: 12),
-              _StatusCard(
-                title: l10n.text('sync.recentFailures'),
-                rows: [
-                  for (final failure in _recentFailures)
-                    _StatusRow(l10n.text('sync.failure'), failure),
-                ],
-              ),
-            ],
-            const SizedBox(height: 12),
-            _StatusCard(
-              title: l10n.text('sync.savedTarget'),
-              rows: [
-                _StatusRow(l10n.text('sync.server'), target?.serverId ?? '-'),
-                _StatusRow(l10n.text('sync.root'), target?.rootId ?? '-'),
-                _StatusRow(l10n.text('sync.baseUrl'), target?.baseUrl ?? '-'),
-                _StatusRow(l10n.text('sync.syncToken'),
-                    _formatToken(target?.syncToken)),
-                _StatusRow(
-                  l10n.text('sync.destinationRoot'),
-                  target?.destinationRoot ?? l10n.text('sync.waitingForPair'),
-                ),
-                _StatusRow(l10n.text('sync.lastSyncedAt'),
-                    _formatDate(target?.lastSyncedAt)),
-                _StatusRow(l10n.text('sync.lastManifestCount'),
-                    _manifestCountText(l10n)),
-              ],
-            ),
-            const SizedBox(height: 12),
-            _StatusCard(
-              title: l10n.text('sync.v1Scope'),
-              rows: [
-                _StatusRow(
-                  l10n.text('sync.phoneRole'),
-                  l10n.text('sync.phoneRoleValue'),
-                ),
-                _StatusRow(
-                  l10n.text('sync.desktopRole'),
-                  l10n.text('sync.desktopRoleValue'),
-                ),
-                _StatusRow(
-                  l10n.text('sync.uploadMode'),
-                  l10n.text('sync.uploadModeValue'),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: OutlinedButton.icon(
+                    onPressed: onChangePairing,
+                    icon: const Icon(Icons.qr_code_2_outlined),
+                    label: Text(l10n.text('sync.changePairing')),
+                  ),
                 ),
               ],
             ),
           ],
         ),
-      ),
+        if (message != null) ...[
+          const SizedBox(height: 12),
+          Text(message!),
+        ],
+        const SizedBox(height: 20),
+        _StatusCard(
+          title: l10n.text('sync.progressTitle'),
+          rows: [
+            _StatusRow(l10n.text('sync.phase'), syncPhase ?? '-'),
+            _StatusRow(l10n.text('sync.uploadProgress'), uploadProgressText),
+            _StatusRow(l10n.text('sync.autoTotals'), autoMessage),
+            _StatusRow(
+              l10n.text('sync.resumePolicy'),
+              l10n.text('sync.resumePolicyValue'),
+            ),
+            _StatusRow(
+              l10n.text('sync.completeStatus'),
+              syncComplete ? l10n.text('sync.completeYes') : '-',
+            ),
+          ],
+        ),
+        if (recentFailures.isNotEmpty) ...[
+          const SizedBox(height: 12),
+          _StatusCard(
+            title: l10n.text('sync.recentFailures'),
+            rows: [
+              for (final failure in recentFailures)
+                _StatusRow(l10n.text('sync.failure'), failure),
+            ],
+          ),
+        ],
+        const SizedBox(height: 12),
+        _StatusCard(
+          title: l10n.text('sync.savedTarget'),
+          rows: [
+            _StatusRow(l10n.text('sync.server'), target.serverId),
+            _StatusRow(l10n.text('sync.root'), target.rootId),
+            _StatusRow(l10n.text('sync.baseUrl'), target.baseUrl),
+            _StatusRow(l10n.text('sync.syncToken'), formattedSyncToken),
+            _StatusRow(
+              l10n.text('sync.destinationRoot'),
+              target.destinationRoot ?? l10n.text('sync.waitingForPair'),
+            ),
+            _StatusRow(l10n.text('sync.lastSyncedAt'), formattedLastSyncedAt),
+            _StatusRow(l10n.text('sync.lastManifestCount'), manifestCountText),
+          ],
+        ),
+        const SizedBox(height: 12),
+        _StatusCard(
+          title: l10n.text('sync.v1Scope'),
+          rows: [
+            _StatusRow(
+              l10n.text('sync.phoneRole'),
+              l10n.text('sync.phoneRoleValue'),
+            ),
+            _StatusRow(
+              l10n.text('sync.desktopRole'),
+              l10n.text('sync.desktopRoleValue'),
+            ),
+            _StatusRow(
+              l10n.text('sync.uploadMode'),
+              l10n.text('sync.uploadModeValue'),
+            ),
+          ],
+        ),
+      ],
     );
   }
 }

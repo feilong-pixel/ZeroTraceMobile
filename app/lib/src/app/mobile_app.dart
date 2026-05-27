@@ -56,15 +56,35 @@ class _ZeroTraceMobileAppState extends State<ZeroTraceMobileApp> {
     await _preferencesRepository.save(preferences);
   }
 
+  Future<void> _setThemeMode(AppThemeMode themeMode) async {
+    final preferences = _preferences.copyWith(themeMode: themeMode);
+    setState(() {
+      _preferences = preferences;
+    });
+    await _preferencesRepository.save(preferences);
+  }
+
+  ThemeMode _materialThemeMode(AppThemeMode themeMode) {
+    return switch (themeMode) {
+      AppThemeMode.system => ThemeMode.system,
+      AppThemeMode.light => ThemeMode.light,
+      AppThemeMode.dark => ThemeMode.dark,
+    };
+  }
+
   @override
   Widget build(BuildContext context) {
     return AppSettingsScope(
       language: _language,
       onLanguageChanged: _setLanguage,
+      themeMode: _preferences.themeMode,
+      onThemeModeChanged: _setThemeMode,
       child: MaterialApp(
         title: 'ExtraSync',
         debugShowCheckedModeBanner: false,
         theme: buildAppTheme(),
+        darkTheme: buildAppTheme(brightness: Brightness.dark),
+        themeMode: _materialThemeMode(_preferences.themeMode),
         locale: _language.locale,
         supportedLocales: AppLocalizations.supportedLocales,
         localizationsDelegates: const [

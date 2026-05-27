@@ -1,6 +1,8 @@
+import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:zerotrace_mobile/src/app/mobile_app.dart';
+import 'package:zerotrace_mobile/src/shared/settings/app_preferences.dart';
 import 'package:zerotrace_mobile/src/shared/settings/preferences_repository.dart';
 
 void main() {
@@ -34,10 +36,33 @@ void main() {
     await tester.pumpAndSettle();
     await tester.tap(find.text('中文'));
     await tester.pumpAndSettle();
-    await tester.pageBack();
+    await tester.binding.handlePopRoute();
     await tester.pumpAndSettle();
 
     expect(find.text('手机同步'), findsOneWidget);
     expect(find.text('相似图片'), findsOneWidget);
+  });
+
+  testWidgets('changes theme from settings', (tester) async {
+    final repository = InMemoryPreferencesRepository();
+    await tester.pumpWidget(
+      ZeroTraceMobileApp(
+        preferencesRepository: repository,
+      ),
+    );
+
+    await tester.tap(find.byTooltip('Settings'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Follow system'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Dark'));
+    await tester.pumpAndSettle();
+
+    final preferences = await repository.load();
+    expect(preferences.themeMode, AppThemeMode.dark);
+    expect(
+      Theme.of(tester.element(find.text('Settings'))).brightness,
+      Brightness.dark,
+    );
   });
 }
