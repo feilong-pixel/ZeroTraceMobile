@@ -27,7 +27,7 @@ class PhoneSyncClient {
         'device_model': deviceName,
         'platform': platform,
         'app_id': 'zerotrace-mobile',
-        'app_version': '0.1.0',
+        'app_version': '0.1.1',
         'owner_label': deviceName,
         'capabilities': {
           'asset_id': true,

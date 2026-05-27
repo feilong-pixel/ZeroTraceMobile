@@ -290,7 +290,7 @@ Phone sends:
   "device_model": "iPhone 13",
   "platform": "ios",
   "app_id": "zerotrace-mobile",
-  "app_version": "0.1.0",
+  "app_version": "0.1.1",
   "owner_label": "User Name",
   "capabilities": {
     "background_upload": true,

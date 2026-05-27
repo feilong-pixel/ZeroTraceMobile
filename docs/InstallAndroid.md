@@ -57,8 +57,8 @@ Copy the release artifact to `dist/`:
 
 ```powershell
 New-Item -ItemType Directory -Force dist
-Copy-Item app\build\app\outputs\flutter-apk\app-release.apk dist\ExtraSync-v0.1.0-android.apk
-Get-FileHash -Algorithm SHA256 dist\ExtraSync-v0.1.0-android.apk
+Copy-Item app\build\app\outputs\flutter-apk\app-release.apk dist\ExtraSync-v0.1.1-android.apk
+Get-FileHash -Algorithm SHA256 dist\ExtraSync-v0.1.1-android.apk
 ```
 
 Upload the APK and checksum to GitHub Releases.

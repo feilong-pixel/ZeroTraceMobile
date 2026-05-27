@@ -31,9 +31,9 @@ Android 写真を PC に転送したい、スマホ写真を Wi-Fi でバック�
 
 すごい転送は現在 Android APK として配布します。
 
-最新リリース: [ExtraSync v0.1.0](https://github.com/feilong-pixel/ZeroTraceMobile/releases/tag/v0.1.0)
+最新リリース: [ExtraSync v0.1.1](https://github.com/feilong-pixel/ZeroTraceMobile/releases/tag/v0.1.1)
 
-1. リリースページから `ExtraSync-v0.1.0-android.apk` をダウンロードします。
+1. リリースページから `ExtraSync-v0.1.1-android.apk` をダウンロードします。
 2. Android スマホで APK を開きます。
 3. Android が「不明なアプリのインストール」を求めた場合、使用中のファイル管理アプリまたはブラウザに許可します。
 4. インストール後、同じローカル Wi-Fi 上の ZeroTraceBrowser とペアリングします。
