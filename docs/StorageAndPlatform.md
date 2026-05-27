@@ -1,124 +1,47 @@
-# Storage and Platform Boundaries
+# Storage And Platform
 
-ZeroTraceMobile keeps all internal runtime data inside the app-private sandbox
-assigned by iOS or Android. Runtime paths in this document are logical paths;
-they must be resolved through platform APIs such as Flutter `path_provider`,
-NSUserDefaults, SharedPreferences, PhotoKit, and MediaStore.
+## Storage Scope
 
-Do not hard-code public directories such as shared downloads, public documents,
-or the photo library for internal cache, database, or preference files.
+The mobile database stores only sync state needed by the phone client:
 
-## Runtime Directories
+- paired desktop targets
+- sync token and destination metadata
+- terminal item states returned by ZeroTraceBrowser
 
-```text
-<app-private-cache>/
-  thumbnails/
-    images/
-      <asset_id_hash>_<width>x<height>.jpg
+The active tables are:
 
-<app-private-application-support>/
-  zerotrace_mobile.sqlite
+- `sync_targets`
+- `sync_items`
 
-<app-private-preferences>/
-  app preferences managed by NSUserDefaults or SharedPreferences
-```
+The phone does not persist scan runs, duplicate groups, review decisions, cleanup
+plans, or deletion audit records in the current product scope.
 
-These directories are scoped by the operating system to the current app bundle
-id or Android package name. They must not conflict with other apps.
+## Resume State
 
-## Thumbnails
+`sync_items` stores server/root/device/item status so later manifest batches can
+skip terminal items. Terminal states are decided by the desktop side and may
+include imported, duplicate, or deleted-local outcomes.
 
-The app should request thumbnails from the platform photo library first:
+Failed upload attempts are left retryable.
 
-- iOS uses PhotoKit thumbnail APIs.
-- Android uses MediaStore, Photo Picker, or platform image-loading helpers.
+## Platform Interface
 
-The app may keep its own thumbnail cache for stable review performance and fast
-first paint. Thumbnail cache files are derived data and may be deleted by the
-system or by the app without losing user decisions.
+`PhotoLibrary` is the platform boundary used by the sync screen:
 
-Thumbnail cache rules:
+- request permission
+- enumerate photo metadata
+- open original bytes
 
-- store thumbnails under the app-private cache directory
-- key files by a stable hash of the platform asset id plus requested size
-- keep thumbnail binaries out of SQLite
-- regenerate missing thumbnails from the platform asset id
-- never write internal thumbnails into the user's photo library
+Android is implemented through `AndroidPhotoLibraryChannel` and the native
+MediaStore bridge.
 
-## SQLite Database
+iPhone support is reserved through `IosPhotoLibraryChannel`. That class is a
+stub until PhotoKit support is intentionally implemented.
 
-The app database is persistent app-private state and belongs under application
-support, not cache.
+## Out Of Scope
 
-SQLite stores:
-
-- scan runs
-- asset metadata cache
-- exact content hashes
-- perceptual hashes
-- duplicate groups
-- ignored groups
-- user keep decisions
+- thumbnail cache
+- platform deletion requests
 - cleanup audit records
-
-The photo library remains the source of truth before any destructive action.
-Before deletion, the app must recheck that each platform asset still exists and
-then use the platform-confirmed deletion flow.
-
-## Preferences
-
-Lightweight user preferences should use app-scoped preferences:
-
-- iOS: NSUserDefaults
-- Android: SharedPreferences
-- Flutter: a small repository abstraction over the platform-backed store
-
-Preferences include language, theme, default scan options, review sorting,
-thumbnail sizing, first-run flags, and safety-related UI choices.
-
-Preferences should not duplicate large scan results or review plans. Those
-belong in SQLite when they need to survive app restarts.
-
-## Platform Bridge
-
-Flutter owns the shared platform contract:
-
-```text
-app/lib/src/shared/platform/
-  photo_library.dart
-  photo_asset.dart
-  photo_permission.dart
-  photo_library_channel.dart
-```
-
-Native code owns operating-system details:
-
-```text
-native/ios/
-  PhotoKit asset enumeration
-  PhotoKit thumbnail loading
-  PhotoKit deletion requests
-
-native/android/
-  MediaStore or Photo Picker asset enumeration
-  thumbnail loading
-  system deletion requests
-```
-
-The platform bridge should expose a small typed surface to Flutter:
-
-- request photo access
-- enumerate photo assets
-- load thumbnails
-- open original bytes or streams for hashing
-- request system-confirmed deletion
-- report platform-specific result details
-
-The bridge must not implement grouping, ranking, or duplicate-detection policy.
-Those decisions belong to the app services and core engine boundary.
-
-## Exported Files
-
-Reports, logs, or user-visible exports are separate from internal runtime data.
-They should only be written after an explicit user action and should use the
-platform share sheet, document picker, or another user-selected destination.
+- local duplicate/similar grouping
+- phone-side photo reorganization

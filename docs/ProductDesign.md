@@ -1,60 +1,45 @@
 # Product Design
 
-## Positioning
+ZeroTraceMobile is a focused phone companion for ZeroTraceBrowser. The first
+shipping version uploads original phone photos to a paired PC over local Wi-Fi.
 
-ZeroTraceMobile is a practical photo cleanup app for iPhone and Android. It
-focuses on duplicate photos, near-duplicate images, and safe manual review.
+## Purpose
 
-The app should feel calm, precise, and trustworthy. It should not ask users to
-create an account before scanning local photos, and it should not make deletion
-feel automatic or irreversible.
+- Help the user move phone photos into a ZeroTraceBrowser-managed workspace.
+- Keep import policy, hashing, duplicate checks, and organization on the PC.
+- Keep the phone UI small enough to trust during repeated sync runs.
 
-## Core Users
+## Current Features
 
-- People with large camera rolls.
-- Users who receive the same image from multiple chat apps.
-- Users who take burst shots or repeated screenshots.
-- Users who want to reclaim storage without sending photos to a server.
+- Pair with ZeroTraceBrowser by scanning or pasting a QR payload.
+- Save one paired desktop target.
+- Send photo metadata manifest batches from the Android media library.
+- Upload only the original photos requested by the PC.
+- Run continuous automatic sync and stop it from the phone.
+- Show progress, current upload, totals, resume policy, and recent failures.
 
-## MVP Scope
+## Explicit Non-Goals
 
-- Request photo-library access.
-- Scan selected or full-library photo assets.
-- Detect exact duplicates.
-- Detect near-duplicates with perceptual hashes.
-- Group results by confidence.
-- Recommend one photo to keep per group.
-- Let users adjust selections manually.
-- Delete through platform-provided confirmation.
-- Persist ignored groups and keep decisions.
+- No on-device duplicate scan in the current mobile app.
+- No on-device similar-photo detection in the current mobile app.
+- No cleanup review workflow on the phone.
+- No phone-side photo deletion or reorganization.
+- No cloud upload path.
 
-## Out Of Scope For MVP
+## Future Placeholder
 
-- Cloud sync.
-- Login accounts.
-- AI enhancement or photo editing.
-- Background automatic deletion.
-- Cross-device cleanup history.
-- Heavy semantic similarity models.
+Similar Photos remains visible as a disabled entry so the product direction is
+clear, but it should not be wired until the upload path is stable and the PC-side
+import workflow has enough real data.
 
-## Primary Screens
+## First Screen
 
-- Dashboard: scan status, duplicate counts, storage estimate, start/resume scan.
-- Scan Progress: current phase, processed count, battery/storage caution.
-- Duplicate Groups: exact duplicate and near-duplicate group list.
-- Group Review: side-by-side images, metadata, keep recommendation.
-- Cleanup Review: final selected count, size estimate, platform deletion prompt.
-- Settings: privacy, scan cache, keep preference, confidence thresholds.
+The dashboard should make the current job obvious:
 
-## Keep Recommendation Rules
+- short upload-focused description
+- primary Phone Sync action
+- disabled Similar Photos placeholder
+- settings access
 
-Default ranking:
-
-1. User-pinned keep decision.
-2. Higher resolution.
-3. Better file quality signal.
-4. Earlier original capture time.
-5. Non-screenshot source.
-6. Larger file size when resolution is equal.
-
-The recommendation must be visible but reversible.
+The dashboard should not show scan counts, duplicate counts, cleanup estimates,
+or review actions.

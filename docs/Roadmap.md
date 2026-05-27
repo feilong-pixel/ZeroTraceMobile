@@ -1,91 +1,57 @@
 # Roadmap
 
-This roadmap keeps the first implementation steps small, testable, and aligned
-with the storage, safety, and platform boundaries already documented.
+This roadmap keeps ZeroTraceMobile focused on phone-to-PC photo upload.
 
-## 1. App Shell
+## 1. Android Upload Client
 
-- Build the Flutter app shell, routes, theme, and localization fallback.
-- Add empty dashboard, scan, review, duplicates, and settings screens.
-- Wire shared service interfaces without real photo-library access.
-
-Exit criteria:
-
-- the app starts on iOS and Android simulators
-- English fallback localization works
-- navigation reaches each first-milestone screen
-
-## 2. Fixture Scanner
-
-- Keep real device albums out of the first engine milestone.
-- Feed synthetic fixture metadata into the core engine.
-- Store expected outputs beside fixture sets.
+- Pair with ZeroTraceBrowser from QR payload JSON.
+- Save the paired desktop target.
+- Request Android photo permission.
+- Enumerate Android MediaStore image metadata.
+- Send manifest batches.
+- Upload requested original bytes.
+- Store terminal item states so imported, duplicate, and deleted-local items are
+  skipped on later runs.
 
 Exit criteria:
 
-- core tests can run without Flutter, iOS, Android, or user photos
-- exact duplicate grouping works against fixture metadata
-- grouping output uses the same DTO shape expected by the app layer
+- Android phone can pair with a PC on local Wi-Fi.
+- Send Manifest Batch uploads requested photos.
+- Auto Sync can run continuously and stop from the phone UI.
 
-## 3. Exact Duplicate Detection
+## 2. Usability Pass
 
-- Add content-hash based exact duplicate grouping.
-- Persist hash results in the app database once the storage repository exists.
-- Keep the photo library as the source of truth before cleanup.
-
-Exit criteria:
-
-- repeat scans reuse cached hash records when valid
-- duplicate groups are reproducible from the same fixture input
-- review state can survive app restart
-
-## 4. Thumbnail Cache
-
-- Request thumbnails through the platform bridge.
-- Cache derived thumbnail files under the app-private cache directory.
-- Regenerate thumbnails when cache files are missing.
+- Show clear sync phase and current upload progress.
+- Show automatic sync totals.
+- Show recent upload failures.
+- Prevent accidental navigation away during active sync.
+- Surface common network, token, permission, and read errors in user-facing copy.
 
 Exit criteria:
 
-- thumbnails are never stored in SQLite
-- thumbnails are never written into the user's photo library
-- clearing cache does not lose scan decisions or audit records
+- The user can understand what the phone is doing during a long sync.
+- Failure messages point to a practical next action.
 
-## 5. SQLite Persistence
+## 3. iPhone Bridge Placeholder
 
-- Add schema and migrations under `app/lib/src/shared/storage/`.
-- Store scan runs, scanned assets, hashes, duplicate groups, review decisions,
-  and audit records.
-- Keep preferences out of the scan database unless they affect persisted review
-  state.
+- Keep the `PhotoLibrary` interface platform-neutral.
+- Keep an `IosPhotoLibraryChannel` stub in place.
+- Implement PhotoKit permission, enumeration, and original-byte access only when
+  iPhone support becomes active work.
 
 Exit criteria:
 
-- app-private database path is used
-- migrations are versioned
-- scan and review state can be restored after restart
+- Android code does not block a later iPhone bridge.
+- iPhone code is not exposed as a current feature before implementation.
 
-## 6. Native Bridge
+## 4. Similar Photos Planning
 
-- Implement the typed Flutter platform contract for iOS and Android.
-- Keep PhotoKit, MediaStore, Photo Picker, and deletion APIs isolated in native
-  bridge code.
-- Translate platform asset ids into normalized app and engine DTOs.
-
-Exit criteria:
-
-- limited photo access is handled on iOS
-- modern Android media permissions are handled
-- platform-specific failures are surfaced to Flutter as typed results
-
-## 7. Safe Delete
-
-- Revalidate selected assets before deletion.
-- Use the system-confirmed deletion flow on each platform.
-- Record accepted, cancelled, skipped, and failed cleanup outcomes.
+- Keep Similar Photos as a disabled dashboard entry.
+- Decide later whether detection belongs on the PC, phone, or shared engine.
+- Do not wire phone-side detection until upload/import behavior has real usage
+  data.
 
 Exit criteria:
 
-- no hidden deletion path exists
-- cancelled deletion leaves review state understandable
-- audit records explain what the app requested and what the platform reported
+- Placeholder copy is visible.
+- No inactive scan, review, or cleanup workflow is reachable in the app.

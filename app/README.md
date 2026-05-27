@@ -1,18 +1,23 @@
 # App Layer
 
-This directory will contain the Flutter application.
+This directory contains the Flutter Android app for ZeroTraceMobile.
 
 The app layer owns:
 
-- navigation
-- localization
-- UI state
-- platform-channel adapters
-- review and cleanup workflows
+- pairing with ZeroTraceBrowser
+- QR scan and manual pairing payload entry
+- Android photo permission and MediaStore access
+- manifest batch submission
+- requested original-photo upload
+- automatic sync and stop controls
+- localization and app settings copy
 
-It should not own duplicate-detection algorithms. Those belong in `core/`.
+It does not own desktop import policy, duplicate detection, cleanup review, or
+photo deletion. Those decisions stay on the ZeroTraceBrowser side. Similar
+Photos remains a disabled placeholder until upload behavior is stable enough to
+plan that feature separately.
 
-## Planned Structure
+## Structure
 
 ```text
 lib/
@@ -24,18 +29,15 @@ lib/
       theme.dart
     features/
       dashboard/
-      scan/
-      duplicates/
-      review/
+      sync/
       settings/
     shared/
       i18n/
       platform/
       settings/
       storage/
-      thumbnails/
+      sync/
       widgets/
-      models/
 ```
 
 ## Localization
@@ -43,36 +45,22 @@ lib/
 The app currently supports English, Chinese, and Japanese through a lightweight
 `LocalizationsDelegate` in `lib/src/shared/i18n/`.
 
-English is the default fallback language. User-selectable language persistence
-will be added after settings persistence is introduced.
+English is the default fallback language.
 
 ## Storage
 
 SQLite storage lives under `lib/src/shared/storage/`.
 
-The first schema stores scan runs, scanned image metadata, exact/perceptual
-hashes, duplicate groups, and group members. The photo library remains the
-source of truth before deletion; the database is used for scan cache, review
-state, and resumable workflows.
-
-The database file belongs in the app-private application support directory.
-Thumbnail binaries belong in the app-private cache directory under a
-`thumbnails/` namespace and should be regenerated when missing. Lightweight
-preferences such as language, theme, default scan options, and review sorting
-live behind `lib/src/shared/settings/`.
-
-See `../docs/StorageAndPlatform.md` for the runtime directory policy and the
-iOS/Android bridge split.
+The current mobile database stores pairing and sync state needed to resume
+uploads safely. Photo files remain in the Android media library; uploaded import
+state is confirmed by ZeroTraceBrowser.
 
 ## Platform Contract
 
 The shared platform interface starts in `lib/src/shared/platform/`:
 
-- `PhotoLibrary` defines permission, enumeration, thumbnail, original-byte, and
-  deletion operations.
-- `PhotoLibraryChannel` is the placeholder for the eventual method-channel or
-  FFI bridge.
-- iOS and Android implementations stay outside shared UI code.
-
-Settings and thumbnail repositories are intentionally thin at first so app code
-depends on stable interfaces before native storage and bridge details are wired.
+- `PhotoLibrary` defines permission, enumeration, and original-byte access.
+- `AndroidPhotoLibraryChannel` implements the active photo listing and upload
+  path.
+- `IosPhotoLibraryChannel` is a reserved iPhone bridge stub for later PhotoKit
+  work.

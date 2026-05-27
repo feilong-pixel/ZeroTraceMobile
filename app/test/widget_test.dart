@@ -7,7 +7,12 @@ void main() {
     await tester.pumpWidget(const ZeroTraceMobileApp());
 
     expect(find.text('ZeroTraceMobile'), findsOneWidget);
-    expect(find.text('Start Scan'), findsOneWidget);
-    expect(find.text('Duplicate Photos'), findsOneWidget);
+    expect(
+      find.text('Send phone photos to ZeroTraceBrowser over local Wi-Fi.'),
+      findsOneWidget,
+    );
+    expect(find.text('Phone Sync'), findsOneWidget);
+    expect(find.text('Similar Photos'), findsOneWidget);
+    expect(find.text('Duplicate Photos'), findsNothing);
   });
 }

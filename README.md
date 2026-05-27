@@ -1,45 +1,50 @@
 # ZeroTraceMobile
 
-ZeroTraceMobile is a local-first iPhone and Android app for duplicate photos,
-near-duplicate images, and similar-picture review.
+ZeroTraceMobile is the Android phone companion for ZeroTraceBrowser. Its first
+version focuses on one practical job: upload original phone photos to a paired PC
+over local Wi-Fi.
 
-The product principle is simple: scan on device, explain every group, let the
-user review before deletion, and never upload private photos to a cloud service.
+The phone app sends photo metadata first, then uploads only the original files
+requested by the desktop side. ZeroTraceBrowser owns the destination root, import
+state, hashing, duplicate checks, and final organization.
+
+## Current Scope
+
+- Pair with ZeroTraceBrowser by scanning or pasting a desktop pairing QR payload.
+- Send manifest batches from the Android media library.
+- Upload requested original photos to the paired PC.
+- Run automatic continuous sync and stop it safely.
+- Keep a disabled Similar Photos entry as a future feature placeholder.
+
+Features such as on-device duplicate scanning, cleanup review, and deletion are
+not part of the current mobile app scope.
 
 ## Project Layout
 
 ```text
-app/                         Flutter application shell
+app/                         Flutter Android application
   lib/
-    main.dart                 App entrypoint placeholder
+    main.dart                 App entrypoint
     src/
       app/                    App composition, routing, theme
-      features/               User-facing feature modules
-      shared/                 Shared UI and platform adapters
+      features/
+        dashboard/            Upload-focused home screen
+        sync/                 Pairing, manifest, upload, auto-sync UI
+        settings/             Pairing and scope copy
+      shared/                 I18n, settings, storage, platform adapters
 
-core/                        Portable duplicate/similarity engine
-  crates/zerotrace_core/      Planned Rust crate for hashing, grouping, cache IO
-  fixtures/                   Test image sets and expected scan outputs
-
-native/                      Platform bridge contracts
-  ios/                        PhotoKit and deletion bridge notes
-  android/                    MediaStore / Photo Picker bridge notes
-
-docs/                        Product, architecture, algorithm, safety notes
+core/                        Reserved for future portable logic
+docs/                        Product, architecture, safety notes
 ```
 
-## First Milestone
-
-1. Build the app shell and navigation in Flutter.
-2. Implement a fixture-based scanner in `core/` before touching real albums.
-3. Add exact duplicate detection with content hashes.
-4. Add perceptual hash grouping for near-duplicates.
-5. Connect iOS PhotoKit and Android MediaStore only after the engine contracts are
-   stable.
+The active platform implementation is Android. A small iPhone photo-library
+interface stub is kept so PhotoKit support can be added later without reshaping
+the sync feature.
 
 ## Safety Model
 
-- All scanning is local by default.
-- Deletion always goes through platform confirmation.
-- Scan results and ignore/keep decisions stay on device.
-- The app records cleanup actions so users can understand what happened later.
+- Photos are sent only to the paired PC on the local network.
+- The phone does not delete or reorganize photos.
+- Sync can be stopped from the phone UI.
+- Imported, duplicate, and locally-deleted states reported by the desktop side
+  are skipped on later sync runs.

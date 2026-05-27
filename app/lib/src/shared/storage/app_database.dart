@@ -40,81 +40,7 @@ class AppDatabase {
   }
 
   static Future<void> _createSchema(Database db, int version) async {
-    await db.execute('''
-      CREATE TABLE ${DatabaseSchema.scanRuns} (
-        id TEXT PRIMARY KEY,
-        started_at TEXT NOT NULL,
-        completed_at TEXT,
-        status TEXT NOT NULL,
-        source TEXT NOT NULL,
-        asset_count INTEGER NOT NULL DEFAULT 0,
-        exact_group_count INTEGER NOT NULL DEFAULT 0,
-        similar_group_count INTEGER NOT NULL DEFAULT 0
-      )
-    ''');
-
-    await db.execute('''
-      CREATE TABLE ${DatabaseSchema.scanAssets} (
-        asset_id TEXT PRIMARY KEY,
-        latest_scan_run_id TEXT NOT NULL,
-        path_hint TEXT,
-        width INTEGER NOT NULL,
-        height INTEGER NOT NULL,
-        size_bytes INTEGER NOT NULL,
-        created_at TEXT,
-        modified_at TEXT,
-        media_type TEXT NOT NULL,
-        fingerprint TEXT NOT NULL,
-        scanned_at TEXT NOT NULL
-      )
-    ''');
-
-    await db.execute('''
-      CREATE INDEX idx_scan_assets_latest_scan_run_id
-      ON ${DatabaseSchema.scanAssets} (latest_scan_run_id)
-    ''');
-
-    await db.execute('''
-      CREATE TABLE ${DatabaseSchema.scanHashes} (
-        asset_id TEXT PRIMARY KEY,
-        content_hash TEXT,
-        perceptual_hash TEXT,
-        perceptual_hash_algorithm TEXT,
-        updated_at TEXT NOT NULL
-      )
-    ''');
-
-    await db.execute('''
-      CREATE TABLE ${DatabaseSchema.duplicateGroups} (
-        id TEXT PRIMARY KEY,
-        scan_run_id TEXT NOT NULL,
-        confidence TEXT NOT NULL,
-        created_at TEXT NOT NULL
-      )
-    ''');
-
-    await db.execute('''
-      CREATE TABLE ${DatabaseSchema.duplicateGroupMembers} (
-        group_id TEXT NOT NULL,
-        asset_id TEXT NOT NULL,
-        selected_for_cleanup INTEGER NOT NULL DEFAULT 0,
-        keep_recommended INTEGER NOT NULL DEFAULT 0,
-        PRIMARY KEY (group_id, asset_id)
-      )
-    ''');
-
-    await db.execute('''
-      CREATE TABLE ${DatabaseSchema.auditRecords} (
-        id TEXT PRIMARY KEY,
-        operation_type TEXT NOT NULL,
-        requested_at TEXT NOT NULL,
-        platform_result TEXT NOT NULL,
-        requested_asset_count INTEGER NOT NULL DEFAULT 0,
-        completed_asset_count INTEGER NOT NULL DEFAULT 0,
-        failed_asset_count INTEGER NOT NULL DEFAULT 0,
-        message TEXT
-      )
-    ''');
+    await _createSyncSchema(db);
   }
 
   static Future<void> _upgradeSchema(
@@ -122,6 +48,55 @@ class AppDatabase {
     int oldVersion,
     int newVersion,
   ) async {
-    // Version 1 is the initial schema. Future migrations stay explicit here.
+    if (oldVersion < 2) {
+      await _createSyncSchema(db);
+    }
+    if (oldVersion < 3) {
+      return;
+    }
+  }
+
+  static Future<void> _createSyncSchema(Database db) async {
+    await db.execute('''
+      CREATE TABLE ${DatabaseSchema.syncTargets} (
+        id TEXT PRIMARY KEY,
+        server_id TEXT NOT NULL,
+        root_id TEXT NOT NULL,
+        base_url TEXT NOT NULL,
+        pairing_token TEXT NOT NULL,
+        sync_token TEXT,
+        sync_token_expires_at TEXT,
+        destination_root TEXT,
+        device_id TEXT NOT NULL,
+        device_type TEXT NOT NULL,
+        device_name TEXT NOT NULL,
+        batch_size INTEGER NOT NULL DEFAULT 10,
+        last_client_cursor TEXT,
+        last_synced_at TEXT,
+        paired_at TEXT NOT NULL,
+        updated_at TEXT NOT NULL
+      )
+    ''');
+
+    await db.execute('''
+      CREATE UNIQUE INDEX idx_sync_targets_identity
+      ON ${DatabaseSchema.syncTargets} (server_id, root_id, device_id)
+    ''');
+
+    await db.execute('''
+      CREATE TABLE ${DatabaseSchema.syncItems} (
+        server_id TEXT NOT NULL,
+        root_id TEXT NOT NULL,
+        device_id TEXT NOT NULL,
+        item_id TEXT NOT NULL,
+        status TEXT NOT NULL,
+        sha256 TEXT,
+        local_path TEXT,
+        existing_local_path TEXT,
+        error TEXT,
+        synced_at TEXT NOT NULL,
+        PRIMARY KEY (server_id, root_id, device_id, item_id)
+      )
+    ''');
   }
 }

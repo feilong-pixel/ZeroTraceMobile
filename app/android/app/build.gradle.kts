@@ -7,7 +7,7 @@ plugins {
 
 android {
     namespace = "com.example.zerotrace_mobile"
-    compileSdk = flutter.compileSdkVersion
+    compileSdk = 36
     ndkVersion = flutter.ndkVersion
 
     compileOptions {

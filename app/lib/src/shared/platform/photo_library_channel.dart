@@ -1,36 +1,67 @@
-import 'dart:typed_data';
+import 'package:flutter/services.dart';
 
 import 'photo_asset.dart';
 import 'photo_library.dart';
 import 'photo_permission.dart';
 
-class PhotoLibraryChannel implements PhotoLibrary {
-  const PhotoLibraryChannel();
+class AndroidPhotoLibraryChannel implements PhotoLibrary {
+  const AndroidPhotoLibraryChannel();
+
+  static const _channel = MethodChannel('zerotrace_mobile/photo_library');
 
   @override
-  Future<PhotoPermissionStatus> requestPermission() {
-    throw UnimplementedError(
-        'Native photo permission bridge is not wired yet.');
+  Future<PhotoPermissionStatus> requestPermission() async {
+    final status = await _channel.invokeMethod<String>('requestPermission');
+    return _permissionStatusFromNative(status);
   }
 
   @override
-  Stream<PhotoAsset> enumerateAssets() {
-    throw UnimplementedError(
-        'Native photo enumeration bridge is not wired yet.');
+  Stream<PhotoAsset> enumerateAssets() async* {
+    final assets =
+        await _channel.invokeListMethod<Map<Object?, Object?>>('listAssets') ??
+            const <Map<Object?, Object?>>[];
+    for (final asset in assets) {
+      yield _assetFromNative(asset);
+    }
   }
 
   @override
-  Future<Uint8List> loadThumbnail(String assetId, ThumbnailSpec spec) {
-    throw UnimplementedError('Native thumbnail bridge is not wired yet.');
+  Future<Uint8List> openOriginalBytes(String assetId) async {
+    final bytes = await _channel.invokeMethod<Uint8List>(
+      'openOriginalBytes',
+      {'assetId': assetId},
+    );
+    if (bytes == null) {
+      throw StateError('Native original-byte bridge returned no bytes.');
+    }
+    return bytes;
   }
 
-  @override
-  Future<Uint8List> openOriginalBytes(String assetId) {
-    throw UnimplementedError('Native original-byte bridge is not wired yet.');
+  PhotoPermissionStatus _permissionStatusFromNative(String? status) {
+    return switch (status) {
+      'granted' => PhotoPermissionStatus.granted,
+      'limited' => PhotoPermissionStatus.limited,
+      'permanentlyDenied' => PhotoPermissionStatus.permanentlyDenied,
+      _ => PhotoPermissionStatus.denied,
+    };
   }
 
-  @override
-  Future<DeletionResult> requestDelete(List<String> assetIds) {
-    throw UnimplementedError('Native deletion bridge is not wired yet.');
+  PhotoAsset _assetFromNative(Map<Object?, Object?> map) {
+    return PhotoAsset(
+      id: map['id']! as String,
+      displayName: map['displayName'] as String?,
+      width: map['width']! as int,
+      height: map['height']! as int,
+      sizeBytes: map['sizeBytes']! as int,
+      createdAt: _dateFromMillis(map['createdAtMillis']),
+      mediaType: PhotoMediaType.image,
+    );
+  }
+
+  DateTime? _dateFromMillis(Object? value) {
+    if (value is! int || value <= 0) {
+      return null;
+    }
+    return DateTime.fromMillisecondsSinceEpoch(value);
   }
 }
