@@ -22,7 +22,9 @@
 
 非常传输目前通过 Android APK 分发。
 
-1. 从 GitHub Releases 下载最新版 `ExtraSync-vX.Y.Z-android.apk`。
+最新版本：[ExtraSync v0.1.0](https://github.com/feilong-pixel/ZeroTraceMobile/releases/tag/v0.1.0)
+
+1. 从发布页面下载 `ExtraSync-v0.1.0-android.apk`。
 2. 在 Android 手机上打开 APK。
 3. 如系统提示“安装未知应用”，请允许当前文件管理器或浏览器安装。
 4. 安装后打开非常传输，并与同一 Wi-Fi 下的 ZeroTraceBrowser 配对。

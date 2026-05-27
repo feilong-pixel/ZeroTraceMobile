@@ -22,7 +22,9 @@
 
 すごい転送は現在 Android APK として配布します。
 
-1. GitHub Releases から最新の `ExtraSync-vX.Y.Z-android.apk` をダウンロードします。
+最新リリース: [ExtraSync v0.1.0](https://github.com/feilong-pixel/ZeroTraceMobile/releases/tag/v0.1.0)
+
+1. リリースページから `ExtraSync-v0.1.0-android.apk` をダウンロードします。
 2. Android スマホで APK を開きます。
 3. Android が「不明なアプリのインストール」を求めた場合、使用中のファイル管理アプリまたはブラウザに許可します。
 4. インストール後、同じローカル Wi-Fi 上の ZeroTraceBrowser とペアリングします。

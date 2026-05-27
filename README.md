@@ -23,7 +23,9 @@ It is free, local-first, and intentionally narrow in scope.
 
 ExtraSync is distributed as an Android APK.
 
-1. Download the latest `ExtraSync-vX.Y.Z-android.apk` from GitHub Releases.
+Latest release: [ExtraSync v0.1.0](https://github.com/feilong-pixel/ZeroTraceMobile/releases/tag/v0.1.0)
+
+1. Download `ExtraSync-v0.1.0-android.apk` from the release page.
 2. Install it on your Android phone.
 3. Pair it with ZeroTraceBrowser on the same local Wi-Fi.
 
