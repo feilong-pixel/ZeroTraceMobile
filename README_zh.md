@@ -1,8 +1,8 @@
-# 非常传输
+# 非常传输 - Android 手机照片通过本地 Wi-Fi 传到电脑
 
 [English](README.md) | [日本語](README_ja.md)
 
-非常传输是 ExtraSync 的中文名。它是 ZeroTraceBrowser 的 Android 手机端伙伴应用，第一版只专注一件实用的事情：通过本地 Wi-Fi，把手机里的原始照片可靠地上传到已配对的 PC。
+非常传输是 ExtraSync 的中文名。它是一款免费、本地优先的 Android 照片传输工具，用来通过本地 Wi-Fi 把手机里的原始照片发送到 Windows PC。它与 ZeroTraceBrowser 配合使用，让你不用云盘、订阅服务或反复插 USB 线，也能把 Android 手机照片备份到电脑。
 
 手机端会先发送照片元数据清单，然后只上传桌面端要求的原始文件。目标目录、导入状态、哈希、重复判断和最终整理都由 ZeroTraceBrowser 负责。
 
@@ -17,6 +17,15 @@
 - PC 判断哪些文件需要上传
 - 手机上传被请求的原始照片
 - 已导入、重复、已在本地删除标记的项目不会反复上传
+
+如果你正在找“Android 照片传输到电脑”“手机照片通过 Wi-Fi 备份到 PC”“不用云盘传照片”或“本地 Wi-Fi 文件传输工具”，非常传输就是面向这个场景做的。
+
+## 相关项目
+
+非常传输需要配合桌面端 ZeroTraceBrowser 使用。桌面端负责目标目录、重复判断、导入记录和最终整理。
+
+- 项目地址：[ZeroTraceBrowser](https://github.com/feilong-pixel/ZeroTraceBrowser)
+- 克隆地址：`git clone https://github.com/feilong-pixel/ZeroTraceBrowser.git`
 
 ## 下载 / 安装
 

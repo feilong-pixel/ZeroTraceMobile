@@ -1,10 +1,11 @@
-# ExtraSync
+# ExtraSync - Android Photo Transfer to PC over Local Wi-Fi
 
 [中文](README_zh.md) | [日本語](README_ja.md)
 
-ExtraSync is the Android phone companion for ZeroTraceBrowser. Its first
-version focuses on one practical job: upload original phone photos to a paired PC
-over local Wi-Fi.
+ExtraSync is a free, local-first Android photo transfer app for sending original
+phone photos to a Windows PC over local Wi-Fi. It works with ZeroTraceBrowser,
+so you can back up Android photos to your computer without cloud storage,
+subscriptions, or USB cables.
 
 The phone app sends photo metadata first, then uploads only the original files
 requested by the desktop side. ZeroTraceBrowser owns the destination root, import
@@ -18,6 +19,22 @@ small but important job: pair the phone with a PC on the same Wi-Fi, then send
 the photos the desktop asks for.
 
 It is free, local-first, and intentionally narrow in scope.
+
+ExtraSync is useful if you are looking for an Android photo transfer tool, a
+local Wi-Fi photo backup app, or a no-cloud way to move phone photos to a
+Windows PC.
+
+## Related Project
+
+ExtraSync is designed to work with ZeroTraceBrowser, the desktop photo organizer
+and local gallery manager.
+
+- Project: [ZeroTraceBrowser](https://github.com/feilong-pixel/ZeroTraceBrowser)
+- Clone: `git clone https://github.com/feilong-pixel/ZeroTraceBrowser.git`
+
+ZeroTraceBrowser owns the desktop-side destination folder, duplicate checks,
+import history, and final photo organization. ExtraSync focuses on the
+phone-side upload flow.
 
 ## Download / Install
 
@@ -39,6 +56,7 @@ Useful search terms:
 - free phone photo backup to computer
 - no-cloud photo transfer
 - Android to Windows photo transfer
+- Android photo backup to Windows
 - ZeroTraceBrowser mobile sync
 
 ## Current Scope

@@ -1,8 +1,8 @@
-# すごい転送
+# すごい転送 - Android 写真をローカル Wi-Fi で PC に転送
 
 [English](README.md) | [中文](README_zh.md)
 
-すごい転送は ExtraSync の日本語名です。ZeroTraceBrowser と組み合わせて使う Android 向けのスマホアプリで、最初のバージョンはひとつの実用的な目的に集中しています。ローカル Wi-Fi 経由で、スマホ内の元写真をペアリング済み PC にアップロードすることです。
+すごい転送は ExtraSync の日本語名です。ローカル優先の無料 Android 写真転送アプリで、スマホ内の元写真をローカル Wi-Fi 経由で Windows PC に送信します。ZeroTraceBrowser と組み合わせることで、クラウド、サブスクリプション、USB ケーブルなしで Android 写真を PC にバックアップできます。
 
 スマホ側は先に写真メタデータの manifest を送り、デスクトップ側が要求した元ファイルだけをアップロードします。保存先ルート、インポート状態、ハッシュ、重複判定、最終的な整理は ZeroTraceBrowser が担当します。
 
@@ -17,6 +17,15 @@
 - PC がアップロード対象を判断する
 - スマホが要求された元写真を送る
 - 取り込み済み、重複、ローカル削除済みの項目は再送しない
+
+Android 写真を PC に転送したい、スマホ写真を Wi-Fi でバックアップしたい、クラウドなしで写真を移動したい、という場面に向けたツールです。
+
+## 関連プロジェクト
+
+すごい転送は、デスクトップ側の写真整理アプリ ZeroTraceBrowser と組み合わせて使います。保存先、重複判定、インポート履歴、最終整理は ZeroTraceBrowser が担当します。
+
+- プロジェクト: [ZeroTraceBrowser](https://github.com/feilong-pixel/ZeroTraceBrowser)
+- Clone: `git clone https://github.com/feilong-pixel/ZeroTraceBrowser.git`
 
 ## ダウンロード / インストール
 
