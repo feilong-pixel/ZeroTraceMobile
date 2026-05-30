@@ -55,10 +55,17 @@ const jaMessages = {
   'sync.phaseBatchComplete': '現在のバッチが完了',
   'sync.phaseComplete': '未同期の写真はありません',
   'sync.phaseStopping': '現在の項目が終わってから停止します',
+  'sync.phaseWifiPaused': 'Wi-Fi から離れたため同期を一時停止しました',
   'sync.progressTitle': '同期進捗',
   'sync.phase': '段階',
   'sync.uploadProgress': '現在のアップロード',
   'sync.uploadProgressValue': '{index}/{total}: {filename}',
+  'sync.photoCount': '写真数',
+  'sync.photoCountValue':
+      '合計 {totalCount} / 完了 {terminalCount} / 残り {remainingCount}',
+  'sync.gentleTransfer': 'やさしい転送',
+  'sync.gentleTransferValue':
+      'レベル {level}: 1 件アップロード後に {delayMs}ms 待機します。',
   'sync.autoTotals': '累計',
   'sync.resumePolicy': '再開',
   'sync.resumePolicyValue': '取り込み済み、重複、ローカル削除済みの写真は再アップロードしません。',
@@ -78,6 +85,8 @@ const jaMessages = {
   'sync.errorUploadRead':
       '元写真を読み取れません。写真が移動、削除されたか、Android がアクセスを拒否した可能性があります。',
   'sync.errorServer': 'PC 側エラー: {detail}',
+  'sync.wifiRequired': 'Wi-Fi に接続してから同期してください。写真は Wi-Fi 上でのみアップロードします。',
+  'sync.wifiLost': 'Wi-Fi から離れたため同期を一時停止しました。Wi-Fi に戻ってから手動で再開してください。',
   'sync.savedTarget': '保存済みの同期先',
   'sync.server': 'サーバー',
   'sync.root': 'ルート',

@@ -34,7 +34,7 @@ Accepted behavior:
 See also:
 
 - [Android Sync Acceptance](AndroidSyncAcceptance.md)
-- [v0.1.2 Release Notes](ReleaseNotes-v0.1.2.md)
+- [v0.2.0 Release Notes](ReleaseNotes-v0.2.0.md)
 
 ## For Maintainers
 
@@ -78,8 +78,8 @@ Copy the release artifact to `dist/`:
 
 ```powershell
 New-Item -ItemType Directory -Force dist
-Copy-Item app\build\app\outputs\flutter-apk\app-release.apk dist\ExtraSync-v0.1.2-android.apk
-Get-FileHash -Algorithm SHA256 dist\ExtraSync-v0.1.2-android.apk
+Copy-Item app\build\app\outputs\flutter-apk\app-release.apk dist\ExtraSync-v0.2.0-android.apk
+Get-FileHash -Algorithm SHA256 dist\ExtraSync-v0.2.0-android.apk
 ```
 
 Upload the APK and checksum to GitHub Releases.

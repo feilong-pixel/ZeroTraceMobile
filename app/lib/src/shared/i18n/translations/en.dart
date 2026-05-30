@@ -64,10 +64,17 @@ const enMessages = {
   'sync.phaseBatchComplete': 'Current batch complete',
   'sync.phaseComplete': 'No more unsynced photos',
   'sync.phaseStopping': 'Stopping after the current item',
+  'sync.phaseWifiPaused': 'Left Wi-Fi; sync paused',
   'sync.progressTitle': 'Sync Progress',
   'sync.phase': 'Phase',
   'sync.uploadProgress': 'Current Upload',
   'sync.uploadProgressValue': '{index}/{total}: {filename}',
+  'sync.photoCount': 'Photos',
+  'sync.photoCountValue':
+      '{totalCount} total / {terminalCount} done / {remainingCount} remaining',
+  'sync.gentleTransfer': 'Gentle Transfer',
+  'sync.gentleTransferValue':
+      'Level {level}: wait {delayMs}ms after each upload.',
   'sync.autoTotals': 'Totals',
   'sync.resumePolicy': 'Resume',
   'sync.resumePolicyValue':
@@ -90,6 +97,10 @@ const enMessages = {
   'sync.errorUploadRead':
       'Could not read the original photo. It may have moved, been deleted, or Android denied access.',
   'sync.errorServer': 'PC returned an error: {detail}',
+  'sync.wifiRequired':
+      'Connect to Wi-Fi before syncing. Photos upload only on Wi-Fi.',
+  'sync.wifiLost':
+      'Left Wi-Fi; sync paused. Return to Wi-Fi and start sync again manually.',
   'sync.savedTarget': 'Saved Target',
   'sync.server': 'Server',
   'sync.root': 'Root',

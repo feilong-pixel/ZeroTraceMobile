@@ -2,6 +2,10 @@ package com.example.zerotrace_mobile
 
 import android.Manifest
 import android.content.ContentUris
+import android.content.Context
+import android.content.Intent
+import android.net.ConnectivityManager
+import android.net.NetworkCapabilities
 import android.net.Uri
 import android.content.pm.PackageManager
 import android.os.Build
@@ -12,6 +16,8 @@ import io.flutter.plugin.common.MethodChannel
 
 class MainActivity : FlutterActivity() {
     private val channelName = "zerotrace_mobile/photo_library"
+    private val backgroundSyncChannelName = "zerotrace_mobile/background_sync"
+    private val networkStatusChannelName = "zerotrace_mobile/network_status"
     private val requestPhotoPermissionCode = 4101
     private var pendingPermissionResult: MethodChannel.Result? = null
 
@@ -25,6 +31,31 @@ class MainActivity : FlutterActivity() {
                 "requestPermission" -> requestPhotoPermission(result)
                 "listAssets" -> result.success(listImageAssets())
                 "openOriginalBytes" -> openOriginalBytes(call.argument<String>("assetId"), result)
+                else -> result.notImplemented()
+            }
+        }
+        MethodChannel(
+            flutterEngine.dartExecutor.binaryMessenger,
+            backgroundSyncChannelName
+        ).setMethodCallHandler { call, result ->
+            when (call.method) {
+                "start" -> {
+                    startBackgroundSyncService()
+                    result.success(null)
+                }
+                "stop" -> {
+                    stopService(Intent(this, BackgroundSyncService::class.java))
+                    result.success(null)
+                }
+                else -> result.notImplemented()
+            }
+        }
+        MethodChannel(
+            flutterEngine.dartExecutor.binaryMessenger,
+            networkStatusChannelName
+        ).setMethodCallHandler { call, result ->
+            when (call.method) {
+                "isWifiConnected" -> result.success(isWifiConnected())
                 else -> result.notImplemented()
             }
         }
@@ -145,5 +176,21 @@ class MainActivity : FlutterActivity() {
     private fun hasPhotoReadPermission(): Boolean {
         return Build.VERSION.SDK_INT < Build.VERSION_CODES.M ||
             checkSelfPermission(photoReadPermission()) == PackageManager.PERMISSION_GRANTED
+    }
+
+    private fun startBackgroundSyncService() {
+        val intent = Intent(this, BackgroundSyncService::class.java)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            startForegroundService(intent)
+        } else {
+            startService(intent)
+        }
+    }
+
+    private fun isWifiConnected(): Boolean {
+        val manager = getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+        val network = manager.activeNetwork ?: return false
+        val capabilities = manager.getNetworkCapabilities(network) ?: return false
+        return capabilities.hasTransport(NetworkCapabilities.TRANSPORT_WIFI)
     }
 }

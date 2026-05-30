@@ -426,6 +426,130 @@ The phone uses this identity as the local resume key. The desktop remains the
 authority for deciding whether a manifest item should be uploaded, skipped as a
 duplicate, or skipped because it was deleted locally.
 
+## Implemented Sync Status Display
+
+The current Android sync page already implements the planned lightweight status
+visualization. It should be treated as complete for the current scope, not as a
+separate pending feature.
+
+Implemented display items:
+
+- sync phase: permission, starting session, enumerating, manifest, uploading,
+  batch complete, complete, and stopping
+- current upload progress: index, total, and filename
+- photo count summary: visible asset total, terminal completed count for the
+  current target, and remaining non-terminal count
+- Auto Sync totals: batch count, manifest count, uploaded count, skipped count,
+  and failure count
+- last manifest result: manifest count, uploaded count, skipped count, and
+  failure count
+- recent failures, capped to the latest few entries
+- resume policy copy explaining that terminal items are not uploaded again
+- saved target details, including server, root, base URL, sync token preview,
+  destination root, last synced time, and last manifest result
+- active Stop Sync / Stopping state during Auto Sync
+- navigation protection while sync is active
+
+This status display is for current-run transparency only. It is not intended to
+be a phone-side sync management console.
+
+## Phone/PC Management Boundary
+
+ExtraSync should stay a light client. It should not add a dedicated phone-side
+sync history, terminal item browser, failed item management page, duplicate
+review page, deleted-local review page, or manual sync-state reset page.
+
+Those management capabilities belong on the ZeroTraceBrowser PC side because
+the PC owns the destination root, duplicate policy, deleted-local markers, import
+history, audit trail, and final state.
+
+## Android Foreground Sync Service
+
+Auto Sync uses an Android foreground service for background transfer support.
+
+Implementation boundary:
+
+- Flutter starts `BackgroundSyncService` when Auto Sync starts.
+- Flutter stops `BackgroundSyncService` when Auto Sync exits, fails, or is
+  stopped by the user.
+- The service owns only Android foreground-service visibility and process
+  priority.
+- The existing Flutter sync loop still owns pairing state, manifest batching,
+  upload requests, terminal item persistence, and UI counters.
+
+Android declarations:
+
+- `android.permission.FOREGROUND_SERVICE`
+- `android.permission.FOREGROUND_SERVICE_DATA_SYNC`
+- `android.permission.POST_NOTIFICATIONS`
+- service foreground type: `dataSync`
+
+This is intentionally a foreground user-visible upload, not a silent background
+worker. It supports app-backgrounded or screen-locked transfer better than a pure
+Activity-bound loop. It does not promise automatic recovery after the Android
+process is force-stopped or killed.
+
+## Wi-Fi Only And Gentle Transfer
+
+Uploads should be guarded by a Wi-Fi-only rule.
+
+Implementation guidance:
+
+- Check the current Android network before starting Auto Sync.
+- Check the current Android network before each original-byte upload.
+- If Wi-Fi is unavailable, do not upload more original bytes.
+- Surface a clear pause/stop reason in the sync UI.
+- Existing terminal item state should make resume safe after the user returns to
+  Wi-Fi and starts sync again.
+- Do not automatically resume in the background when Wi-Fi comes back.
+- The user must manually start Auto Sync again after returning to Wi-Fi.
+
+Do not infer Wi-Fi by probing the PC URL. Use Android network state, exposed to
+Flutter through a small platform API such as `ConnectivityManager` over a
+MethodChannel.
+
+Wi-Fi departure behavior:
+
+- If Wi-Fi is unavailable before Auto Sync starts, refuse to start and show a
+  clear message.
+- If Wi-Fi disappears during Auto Sync, stop scheduling additional original-byte
+  uploads and show that sync paused because Wi-Fi was lost.
+- A currently in-flight single upload may finish or fail naturally; do not kill
+  the request aggressively.
+- Stop the foreground-service notification when Auto Sync exits.
+- After the user returns to Wi-Fi, they can start Auto Sync again. Terminal item
+  state prevents completed photos from being uploaded again.
+
+This keeps the app light and user-controlled. Automatic network-change recovery
+is intentionally out of scope for this step.
+
+Gentle transfer should be user-controlled:
+
+```text
+level 1 = 100 ms delay after each uploaded item
+level 2 = 200 ms delay after each uploaded item
+level 3 = 300 ms delay after each uploaded item
+level 4 = 400 ms delay after each uploaded item
+level 5 = 500 ms delay after each uploaded item
+```
+
+Default level: 3.
+
+UI placement:
+
+- Put the control on the Phone Sync page.
+- Place it near the Auto Sync / Sync Once controls, before the progress cards.
+- Use a segmented 1-5 control or equivalent simple selector.
+- Persist the selected level locally so the next sync uses the same pace.
+
+This replaces complex phone-idle detection. Avoid polling CPU, memory, user
+activity, or other app state. The first implementation should keep the rule
+simple: user-initiated Auto Sync, Wi-Fi only, and a small per-photo delay.
+
+Do not add a fixed delay after every 10-item manifest batch. That could make the
+app look stuck. The 10-item batch boundary remains a protocol and progress unit,
+while pacing is controlled per uploaded item.
+
 ## Identity Rules
 
 Use stable identities:

@@ -38,3 +38,25 @@ current confirmed problems:
 - Desktop duplicate and deleted-local responses.
 - Stop and resume behavior during Auto Sync.
 - Clear user-facing errors for permission, token, network, and read failures.
+
+## 2026-05-30 Background Transfer Acceptance
+
+Status: passed
+
+Verified scope:
+
+- Start Auto Sync.
+- Press Home while Auto Sync is active.
+- Lock the Android phone screen while Auto Sync is active.
+- Confirm the Android foreground-service notification remains visible.
+- Confirm upload continues while the app is backgrounded and the screen is
+  locked.
+- Stop Auto Sync from the app.
+- Confirm the foreground-service notification disappears after sync stops.
+
+Acceptance conclusion:
+
+Android foreground-service background transfer is usable for the tested Auto
+Sync workflow. The implementation supports user-visible background upload while
+Auto Sync remains active. It does not change the killed-process recovery
+boundary documented in the product and technical design notes.

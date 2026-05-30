@@ -2,8 +2,11 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../shared/i18n/app_localizations.dart';
+import '../../shared/platform/background_sync_service.dart';
+import '../../shared/platform/network_status.dart';
 import '../../shared/platform/photo_asset.dart';
 import '../../shared/platform/photo_library_channel.dart';
 import '../../shared/platform/photo_library.dart';
@@ -19,13 +22,19 @@ class PhoneSyncScreen extends StatefulWidget {
     PhoneSyncClient? syncClient,
     SyncRepository? repository,
     PhotoLibrary? photoLibrary,
+    BackgroundSyncService? backgroundSyncService,
+    NetworkStatus? networkStatus,
   })  : _syncClient = syncClient,
         _repository = repository,
-        _photoLibrary = photoLibrary;
+        _photoLibrary = photoLibrary,
+        _backgroundSyncService = backgroundSyncService,
+        _networkStatus = networkStatus;
 
   final PhoneSyncClient? _syncClient;
   final SyncRepository? _repository;
   final PhotoLibrary? _photoLibrary;
+  final BackgroundSyncService? _backgroundSyncService;
+  final NetworkStatus? _networkStatus;
 
   @override
   State<PhoneSyncScreen> createState() => _PhoneSyncScreenState();
@@ -36,6 +45,8 @@ class _PhoneSyncScreenState extends State<PhoneSyncScreen> {
   late final SyncRepository _repository;
   late final PhoneSyncClient _syncClient;
   late final PhotoLibrary _photoLibrary;
+  late final BackgroundSyncService _backgroundSyncService;
+  late final NetworkStatus _networkStatus;
   SyncTarget? _target;
   String? _message;
   bool _isPairing = false;
@@ -57,11 +68,16 @@ class _PhoneSyncScreenState extends State<PhoneSyncScreen> {
   int _autoUploadCount = 0;
   int _autoSkipCount = 0;
   int _autoFailureCount = 0;
+  int _photoTotalCount = 0;
+  int _photoTerminalCount = 0;
+  int _photoRemainingCount = 0;
+  int _gentleTransferLevel = 3;
 
   static const _deviceId = 'zerotrace-mobile-local-device';
   static const _deviceName = 'ExtraSync';
   static const _manifestBatchSize = 10;
   static const _maxRecentFailures = 5;
+  static const _gentleTransferLevelKey = 'sync_gentle_transfer_level';
 
   @override
   void initState() {
@@ -69,7 +85,11 @@ class _PhoneSyncScreenState extends State<PhoneSyncScreen> {
     _repository = widget._repository ?? SyncRepository();
     _syncClient = widget._syncClient ?? PhoneSyncClient();
     _photoLibrary = widget._photoLibrary ?? const AndroidPhotoLibraryChannel();
+    _backgroundSyncService =
+        widget._backgroundSyncService ?? const BackgroundSyncService();
+    _networkStatus = widget._networkStatus ?? const NetworkStatus();
     _loadLatestTarget();
+    _loadGentleTransferLevel();
   }
 
   @override
@@ -85,6 +105,29 @@ class _PhoneSyncScreenState extends State<PhoneSyncScreen> {
     }
     setState(() {
       _target = target;
+    });
+  }
+
+  Future<void> _loadGentleTransferLevel() async {
+    final preferences = await SharedPreferences.getInstance();
+    final level = preferences.getInt(_gentleTransferLevelKey) ?? 3;
+    if (!mounted) {
+      return;
+    }
+    setState(() {
+      _gentleTransferLevel = level.clamp(1, 5);
+    });
+  }
+
+  Future<void> _saveGentleTransferLevel(int level) async {
+    final normalized = level.clamp(1, 5);
+    final preferences = await SharedPreferences.getInstance();
+    await preferences.setInt(_gentleTransferLevelKey, normalized);
+    if (!mounted) {
+      return;
+    }
+    setState(() {
+      _gentleTransferLevel = normalized;
     });
   }
 
@@ -155,6 +198,7 @@ class _PhoneSyncScreenState extends State<PhoneSyncScreen> {
       _message = null;
     });
     try {
+      await _ensureWifi(l10n);
       final result = await _runManifestBatch(
         pairFirstMessage: l10n.text('sync.pairFirst'),
         permissionDeniedMessage: l10n.text('sync.photoPermissionDenied'),
@@ -189,6 +233,12 @@ class _PhoneSyncScreenState extends State<PhoneSyncScreen> {
     if (_isPairing || _isSendingManifest || _isAutoSyncing) {
       return;
     }
+    if (!await _networkStatus.isWifiConnected()) {
+      setState(() {
+        _message = l10n.text('sync.wifiRequired');
+      });
+      return;
+    }
 
     setState(() {
       _isAutoSyncing = true;
@@ -203,6 +253,7 @@ class _PhoneSyncScreenState extends State<PhoneSyncScreen> {
     });
 
     try {
+      await _backgroundSyncService.start();
       while (mounted && !_stopAutoSyncRequested) {
         final result = await _runManifestBatch(
           pairFirstMessage: l10n.text('sync.pairFirst'),
@@ -245,12 +296,21 @@ class _PhoneSyncScreenState extends State<PhoneSyncScreen> {
         _message = _friendlyError(l10n, error);
       });
     } finally {
+      await _stopBackgroundSyncService();
       if (mounted) {
         setState(() {
           _isAutoSyncing = false;
           _stopAutoSyncRequested = false;
         });
       }
+    }
+  }
+
+  Future<void> _stopBackgroundSyncService() async {
+    try {
+      await _backgroundSyncService.stop();
+    } on Object {
+      // The foreground notification is best-effort cleanup; UI state must reset.
     }
   }
 
@@ -300,6 +360,7 @@ class _PhoneSyncScreenState extends State<PhoneSyncScreen> {
     if (target == null || target.syncToken == null) {
       throw StateError(pairFirstMessage);
     }
+    await _ensureWifi(l10n);
     _setSyncPhase(l10n.text('sync.phasePermission'));
     final permission = await _photoLibrary.requestPermission();
     if (permission != PhotoPermissionStatus.granted &&
@@ -317,20 +378,29 @@ class _PhoneSyncScreenState extends State<PhoneSyncScreen> {
     _setSyncPhase(l10n.text('sync.phaseEnumerating'));
     final terminalIds = await _repository.terminalItemIds(target);
     final items = <SyncManifestItem>[];
+    var totalCount = 0;
+    var terminalCount = 0;
+    var remainingCount = 0;
     await for (final asset in _photoLibrary.enumerateAssets()) {
+      totalCount += 1;
       if (terminalIds.contains(asset.id)) {
+        terminalCount += 1;
         continue;
       }
-      items.add(_manifestItemFromAsset(asset));
-      if (items.length >= _manifestBatchSize) {
-        break;
+      remainingCount += 1;
+      if (items.length < _manifestBatchSize) {
+        items.add(_manifestItemFromAsset(asset));
       }
     }
 
     if (items.isEmpty) {
       _syncComplete = true;
       _setSyncPhase(l10n.text('sync.phaseComplete'));
-      return const _SyncBatchResult.empty();
+      return _SyncBatchResult.empty(
+        totalCount: totalCount,
+        terminalCount: terminalCount,
+        remainingCount: remainingCount,
+      );
     }
 
     _setSyncPhase(l10n.text('sync.phaseManifest'));
@@ -362,6 +432,9 @@ class _PhoneSyncScreenState extends State<PhoneSyncScreen> {
       uploadedCount: uploadResult.uploadedCount,
       skipCount: _skippedItemCount(manifestResponse),
       failureCount: uploadResult.failureCount,
+      totalCount: totalCount,
+      terminalCount: terminalCount,
+      remainingCount: remainingCount,
     );
   }
 
@@ -387,6 +460,7 @@ class _PhoneSyncScreenState extends State<PhoneSyncScreen> {
       if (item == null) {
         continue;
       }
+      await _ensureWifi(l10n);
       try {
         _setUploadProgress(
           phase: l10n.text('sync.phaseUploading'),
@@ -416,6 +490,7 @@ class _PhoneSyncScreenState extends State<PhoneSyncScreen> {
           ),
         );
         uploadedCount += 1;
+        await _applyGentleTransferDelay();
       } on Object catch (error) {
         _recordFailure('${item.filename}: ${_friendlyError(l10n, error)}');
         await _repository.upsertItemState(
@@ -430,6 +505,7 @@ class _PhoneSyncScreenState extends State<PhoneSyncScreen> {
           ),
         );
         failureCount += 1;
+        await _applyGentleTransferDelay();
       }
     }
     return _UploadBatchResult(
@@ -480,6 +556,19 @@ class _PhoneSyncScreenState extends State<PhoneSyncScreen> {
         );
       }
     });
+  }
+
+  Future<void> _ensureWifi(AppLocalizations l10n) async {
+    if (await _networkStatus.isWifiConnected()) {
+      return;
+    }
+    _setSyncPhase(l10n.text('sync.phaseWifiPaused'));
+    throw _WifiUnavailableException(l10n.text('sync.wifiLost'));
+  }
+
+  Future<void> _applyGentleTransferDelay() async {
+    final delayMs = _gentleTransferLevel * 100;
+    await Future<void>.delayed(Duration(milliseconds: delayMs));
   }
 
   Future<void> _persistSkippedItems({
@@ -644,6 +733,9 @@ class _PhoneSyncScreenState extends State<PhoneSyncScreen> {
     _lastUploadCount = result.uploadedCount;
     _lastSkipCount = result.skipCount;
     _lastFailureCount = result.failureCount;
+    _photoTotalCount = result.totalCount;
+    _photoTerminalCount = result.terminalCount;
+    _photoRemainingCount = result.remainingCount;
   }
 
   String _batchMessage(AppLocalizations l10n, _SyncBatchResult result) {
@@ -671,6 +763,17 @@ class _PhoneSyncScreenState extends State<PhoneSyncScreen> {
         .replaceAll('{failureCount}', _autoFailureCount.toString());
   }
 
+  String _photoCountText(AppLocalizations l10n) {
+    if (_photoTotalCount == 0 && _photoTerminalCount == 0) {
+      return '-';
+    }
+    return l10n
+        .text('sync.photoCountValue')
+        .replaceAll('{totalCount}', _photoTotalCount.toString())
+        .replaceAll('{terminalCount}', _photoTerminalCount.toString())
+        .replaceAll('{remainingCount}', _photoRemainingCount.toString());
+  }
+
   String _friendlyError(AppLocalizations l10n, Object error) {
     final raw = error.toString();
     final lower = raw.toLowerCase();
@@ -696,6 +799,9 @@ class _PhoneSyncScreenState extends State<PhoneSyncScreen> {
         lower.contains('asset_read_failed') ||
         lower.contains('asset_not_found')) {
       return l10n.text('sync.errorUploadRead');
+    }
+    if (error is _WifiUnavailableException) {
+      return error.message;
     }
     if (error is HttpException) {
       return l10n
@@ -803,6 +909,8 @@ class _PhoneSyncScreenState extends State<PhoneSyncScreen> {
                 syncComplete: _syncComplete,
                 recentFailures: _recentFailures,
                 uploadProgressText: _uploadProgressText(l10n),
+                photoCountText: _photoCountText(l10n),
+                gentleTransferLevel: _gentleTransferLevel,
                 autoMessage: _autoMessage(l10n),
                 manifestCountText: _manifestCountText(l10n),
                 formattedLastSyncedAt: _formatDate(target.lastSyncedAt),
@@ -815,6 +923,8 @@ class _PhoneSyncScreenState extends State<PhoneSyncScreen> {
                 onStopAutoSync: _isAutoSyncing && !_stopAutoSyncRequested
                     ? _stopAutoSync
                     : null,
+                onGentleTransferLevelChanged:
+                    _syncInProgress ? null : _saveGentleTransferLevel,
                 onChangePairing: _syncInProgress ? null : _changePairing,
                 buttonProgress: _buttonProgress,
               ),
@@ -900,6 +1010,8 @@ class _SyncView extends StatelessWidget {
     required this.syncComplete,
     required this.recentFailures,
     required this.uploadProgressText,
+    required this.photoCountText,
+    required this.gentleTransferLevel,
     required this.autoMessage,
     required this.manifestCountText,
     required this.formattedLastSyncedAt,
@@ -910,6 +1022,7 @@ class _SyncView extends StatelessWidget {
     required this.onSendManifest,
     required this.onAutoSync,
     required this.onStopAutoSync,
+    required this.onGentleTransferLevelChanged,
     required this.onChangePairing,
     required this.buttonProgress,
   });
@@ -920,6 +1033,8 @@ class _SyncView extends StatelessWidget {
   final bool syncComplete;
   final List<String> recentFailures;
   final String uploadProgressText;
+  final String photoCountText;
+  final int gentleTransferLevel;
   final String autoMessage;
   final String manifestCountText;
   final String formattedLastSyncedAt;
@@ -930,6 +1045,7 @@ class _SyncView extends StatelessWidget {
   final VoidCallback? onSendManifest;
   final VoidCallback? onAutoSync;
   final VoidCallback? onStopAutoSync;
+  final ValueChanged<int>? onGentleTransferLevelChanged;
   final VoidCallback? onChangePairing;
   final Widget Function() buttonProgress;
 
@@ -995,12 +1111,18 @@ class _SyncView extends StatelessWidget {
           const SizedBox(height: 12),
           Text(message!),
         ],
+        const SizedBox(height: 16),
+        _GentleTransferControl(
+          level: gentleTransferLevel,
+          onChanged: onGentleTransferLevelChanged,
+        ),
         const SizedBox(height: 20),
         _StatusCard(
           title: l10n.text('sync.progressTitle'),
           rows: [
             _StatusRow(l10n.text('sync.phase'), syncPhase ?? '-'),
             _StatusRow(l10n.text('sync.uploadProgress'), uploadProgressText),
+            _StatusRow(l10n.text('sync.photoCount'), photoCountText),
             _StatusRow(l10n.text('sync.autoTotals'), autoMessage),
             _StatusRow(
               l10n.text('sync.resumePolicy'),
@@ -1055,6 +1177,52 @@ class _SyncView extends StatelessWidget {
               l10n.text('sync.uploadModeValue'),
             ),
           ],
+        ),
+      ],
+    );
+  }
+}
+
+class _GentleTransferControl extends StatelessWidget {
+  const _GentleTransferControl({
+    required this.level,
+    required this.onChanged,
+  });
+
+  final int level;
+  final ValueChanged<int>? onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = context.l10n;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          l10n.text('sync.gentleTransfer'),
+          style: Theme.of(context).textTheme.titleSmall,
+        ),
+        const SizedBox(height: 8),
+        SegmentedButton<int>(
+          segments: [
+            for (var value = 1; value <= 5; value += 1)
+              ButtonSegment<int>(
+                value: value,
+                label: Text(value.toString()),
+              ),
+          ],
+          selected: {level},
+          onSelectionChanged: onChanged == null
+              ? null
+              : (selection) => onChanged!(selection.single),
+        ),
+        const SizedBox(height: 6),
+        Text(
+          l10n
+              .text('sync.gentleTransferValue')
+              .replaceAll('{level}', level.toString())
+              .replaceAll('{delayMs}', (level * 100).toString()),
+          style: Theme.of(context).textTheme.bodySmall,
         ),
       ],
     );
@@ -1127,10 +1295,16 @@ class _SyncBatchResult {
     required this.uploadedCount,
     required this.skipCount,
     required this.failureCount,
+    required this.totalCount,
+    required this.terminalCount,
+    required this.remainingCount,
   });
 
-  const _SyncBatchResult.empty()
-      : manifestCount = 0,
+  const _SyncBatchResult.empty({
+    required this.totalCount,
+    required this.terminalCount,
+    required this.remainingCount,
+  })  : manifestCount = 0,
         uploadedCount = 0,
         skipCount = 0,
         failureCount = 0;
@@ -1139,4 +1313,16 @@ class _SyncBatchResult {
   final int uploadedCount;
   final int skipCount;
   final int failureCount;
+  final int totalCount;
+  final int terminalCount;
+  final int remainingCount;
+}
+
+class _WifiUnavailableException implements Exception {
+  const _WifiUnavailableException(this.message);
+
+  final String message;
+
+  @override
+  String toString() => message;
 }

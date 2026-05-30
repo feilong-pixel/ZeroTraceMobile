@@ -40,14 +40,15 @@ phone-side upload flow.
 
 ExtraSync is distributed as an Android APK.
 
-Latest published release: [ExtraSync v0.1.1](https://github.com/feilong-pixel/ZeroTraceMobile/releases/tag/v0.1.1)
+Latest release: [ExtraSync v0.2.0](https://github.com/feilong-pixel/ZeroTraceMobile/releases/tag/v0.2.0)
 
 Android phone-to-PC sync has been accepted on a real Android phone and PC. The
 accepted flow includes QR pairing, single-batch transfer, Auto Sync transfer,
-10-item manifest batches, readable uploaded images on the PC, and credible sync
-totals. See [Android Sync Acceptance](docs/AndroidSyncAcceptance.md).
+background transfer with a foreground-service notification, Wi-Fi-only upload,
+gentle transfer pacing, 10-item manifest batches, readable uploaded images on
+the PC, and credible sync totals. See [Android Sync Acceptance](docs/AndroidSyncAcceptance.md).
 
-1. Download `ExtraSync-v0.1.1-android.apk` from the release page.
+1. Download `ExtraSync-v0.2.0-android.apk` from the release page.
 2. Install it on your Android phone.
 3. Pair it with ZeroTraceBrowser on the same local Wi-Fi.
 
@@ -70,6 +71,10 @@ Useful search terms:
 - Send manifest batches from the Android media library.
 - Upload requested original photos to the paired PC.
 - Run automatic continuous sync and stop it safely.
+- Continue active Auto Sync while the app is backgrounded or the screen is
+  locked.
+- Upload photos only while the phone is on Wi-Fi.
+- Use a user-selected gentle transfer level to pace uploads.
 - Resume by skipping locally persisted terminal items for the same
   `server_id + root_id + device_id + item_id`.
 - Keep a disabled Similar Photos entry as a future feature placeholder.

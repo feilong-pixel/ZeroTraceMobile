@@ -1,16 +1,23 @@
-# ExtraSync v0.1.2 Release Notes
+# ExtraSync v0.2.0 Release Notes
 
-Status: release note draft for the Android sync acceptance build.
+Status: final release notes for the Android phone-to-PC sync build.
 
 ## Highlights
 
 - Android phone-to-PC sync has been accepted on a real Android phone and PC.
 - QR pairing with ZeroTraceBrowser is supported.
-- Single Send Manifest Batch transfer is supported.
+- Single Sync Once transfer is supported.
 - Auto Sync transfer is supported.
+- Active Auto Sync can continue while the app is backgrounded or the screen is
+  locked, using an Android foreground-service notification.
+- Upload is Wi-Fi only. If Wi-Fi is unavailable, the app does not upload more
+  original bytes and the user can restart sync manually after returning to
+  Wi-Fi.
+- Gentle Transfer levels 1-5 let the user pace uploads from 100ms to 500ms
+  after each uploaded item. The default level is 3.
 - Manifest transfer runs in 10-item batches.
-- Stop during Auto Sync is cooperative: the app finishes the current 10-item
-  batch before stopping.
+- Stop during Auto Sync is cooperative: the app finishes the current batch
+  boundary before stopping.
 - Resume behavior is based on local terminal item state, keyed by
   `server_id + root_id + device_id + item_id`.
 - Uploaded photos on the PC were verified as readable and usable in the tested
@@ -40,8 +47,14 @@ later manual batch or Auto Sync run.
 
 ## Install
 
-Install `ExtraSync-v0.1.2-android.apk` on Android and pair it with
+Install `ExtraSync-v0.2.0-android.apk` on Android and pair it with
 ZeroTraceBrowser on the same local Wi-Fi.
+
+SHA256:
+
+```text
+73894EFD3538BDA4A69ADD19D767DFCB22F4D89C8BC022E9A1F071A3DACA9FCA
+```
 
 ## Notes
 
