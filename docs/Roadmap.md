@@ -4,6 +4,8 @@ This roadmap keeps ExtraSync focused on phone-to-PC photo upload.
 
 ## 1. Android Upload Client
 
+Status: accepted on 2026-05-30.
+
 - Pair with ZeroTraceBrowser from QR payload JSON.
 - Save the paired desktop target.
 - Request Android photo permission.
@@ -15,11 +17,22 @@ This roadmap keeps ExtraSync focused on phone-to-PC photo upload.
 
 Exit criteria:
 
-- Android phone can pair with a PC on local Wi-Fi.
-- Send Manifest Batch uploads requested photos.
-- Auto Sync can run continuously and stop from the phone UI.
+- Android phone can pair with a PC on local Wi-Fi. Passed.
+- Send Manifest Batch uploads requested photos. Passed.
+- Auto Sync can run continuously and stop from the phone UI. Passed for the
+  tested run.
+- Stop during Auto Sync finishes the current 10-item batch before stopping.
+  Accepted as current behavior.
+- Uploaded images on the PC are valid and readable. Passed.
+- Sync totals are credible for the tested run. Passed.
+
+Acceptance record:
+
+- `docs/AndroidSyncAcceptance.md`
 
 ## 2. Usability Pass
+
+Status: next hardening focus.
 
 - Show clear sync phase and current upload progress.
 - Show automatic sync totals.

@@ -15,6 +15,27 @@ ExtraSync is distributed as an Android APK for now. It is not on Google Play yet
 Android may warn that the APK was downloaded outside an app store. That warning
 is expected for direct APK installs.
 
+## Accepted Android Sync Behavior
+
+The Android phone-to-PC sync flow was accepted on a real Android phone and PC on
+2026-05-30.
+
+Accepted behavior:
+
+- Pair with ZeroTraceBrowser by QR payload.
+- Send one manifest batch and upload requested photos.
+- Run Auto Sync continuously.
+- Use 10-item manifest batches.
+- Finish the current 10-item batch before stopping Auto Sync.
+- Skip locally persisted terminal items on later runs.
+- Produce uploaded PC-side image files that are readable and usable.
+- Show credible sync totals for the tested run.
+
+See also:
+
+- [Android Sync Acceptance](AndroidSyncAcceptance.md)
+- [v0.1.2 Release Notes](ReleaseNotes-v0.1.2.md)
+
 ## For Maintainers
 
 Release APKs must be signed with a stable release keystore. Do not commit the
@@ -57,8 +78,8 @@ Copy the release artifact to `dist/`:
 
 ```powershell
 New-Item -ItemType Directory -Force dist
-Copy-Item app\build\app\outputs\flutter-apk\app-release.apk dist\ExtraSync-v0.1.1-android.apk
-Get-FileHash -Algorithm SHA256 dist\ExtraSync-v0.1.1-android.apk
+Copy-Item app\build\app\outputs\flutter-apk\app-release.apk dist\ExtraSync-v0.1.2-android.apk
+Get-FileHash -Algorithm SHA256 dist\ExtraSync-v0.1.2-android.apk
 ```
 
 Upload the APK and checksum to GitHub Releases.

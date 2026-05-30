@@ -364,6 +364,68 @@ failed
 For v1, the phone should avoid re-uploading a terminal item for the same
 `server_id + root_id + device_id + item_id`.
 
+## Auto Sync Batch and Resume Rules
+
+The current Android Auto Sync implementation is batch-loop based.
+
+Flow:
+
+```text
+Auto Sync button
+  -> start one sync session
+  -> read terminal item ids from local SQLite
+  -> enumerate Android MediaStore assets
+  -> collect up to 10 non-terminal items
+  -> send manifest
+  -> persist desktop skip decisions
+  -> upload only desktop-requested item bytes
+  -> persist terminal upload results
+  -> repeat until no new candidate remains, a failure occurs, or stop is requested
+```
+
+Batch size:
+
+- The current manifest batch size is 10 items.
+- Stop is cooperative. When the user requests Stop during Auto Sync, the phone
+  finishes the current 10-item batch before the loop exits.
+
+How the phone decides what still needs work:
+
+- The phone does not calculate SHA-256 in v1.
+- The phone does not decide completion by filename.
+- The phone reads local SQLite `sync_items` rows for the current
+  `server_id + root_id + device_id`.
+- Any Android asset whose `item_id` is already in a terminal state is skipped
+  before sending the next manifest.
+- Any Android asset not in a terminal state is eligible for the next manifest
+  batch.
+
+Current terminal states:
+
+```text
+imported
+already_imported
+skipped_duplicate
+skipped_deleted_locally
+uploaded
+```
+
+Current retry behavior:
+
+- `failed` is not terminal.
+- A failed item can be picked up again by a later Send Manifest Batch or Auto
+  Sync run.
+
+Identity:
+
+```text
+server_id + root_id + device_id + item_id
+```
+
+The phone uses this identity as the local resume key. The desktop remains the
+authority for deciding whether a manifest item should be uploaded, skipped as a
+duplicate, or skipped because it was deleted locally.
+
 ## Identity Rules
 
 Use stable identities:

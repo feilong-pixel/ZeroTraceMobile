@@ -31,7 +31,13 @@ Android 写真を PC に転送したい、スマホ写真を Wi-Fi でバック�
 
 すごい転送は現在 Android APK として配布します。
 
-最新リリース: [ExtraSync v0.1.1](https://github.com/feilong-pixel/ZeroTraceMobile/releases/tag/v0.1.1)
+現在公開済みのリリース: [ExtraSync v0.1.1](https://github.com/feilong-pixel/ZeroTraceMobile/releases/tag/v0.1.1)
+
+Android 端末から PC への同期メインフローは、実機の Android 端末と
+PC で受け入れ確認済みです。確認済みの範囲には、QR ペアリング、単一
+バッチ転送、Auto Sync 転送、10 件単位の manifest バッチ、PC 側で
+読み取れるアップロード済み画像、信頼できる同期件数が含まれます。
+詳しくは [Android Sync Acceptance](docs/AndroidSyncAcceptance.md) を参照してください。
 
 1. リリースページから `ExtraSync-v0.1.1-android.apk` をダウンロードします。
 2. Android スマホで APK を開きます。
@@ -57,6 +63,7 @@ Android 写真を PC に転送したい、スマホ写真を Wi-Fi でバック�
 - Android メディアライブラリから写真 manifest バッチを送信。
 - デスクトップ側が要求した元写真をアップロード。
 - 自動連続同期と停止に対応。
+- `server_id + root_id + device_id + item_id` に基づく端末内の終端状態を使い、次回以降の同期で処理済み項目をスキップ。
 - 類似写真は将来機能のプレースホルダーとして表示のみ。
 
 現在のスマホアプリでは、端末内の重複スキャン、クリーンアップレビュー、写真削除、写真整理は行いません。

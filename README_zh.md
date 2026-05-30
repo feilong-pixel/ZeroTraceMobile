@@ -31,7 +31,9 @@
 
 非常传输目前通过 Android APK 分发。
 
-最新版本：[ExtraSync v0.1.1](https://github.com/feilong-pixel/ZeroTraceMobile/releases/tag/v0.1.1)
+当前已发布版本：[ExtraSync v0.1.1](https://github.com/feilong-pixel/ZeroTraceMobile/releases/tag/v0.1.1)
+
+Android 手机到 PC 的同步主链路已经完成真机验收。已验收范围包括：扫码配对、单批次传输、自动传输、10 张 manifest 批次、上传到 PC 的图片可正常打开、同步总数可信。详见 [Android Sync Acceptance](docs/AndroidSyncAcceptance.md)。
 
 1. 从发布页面下载 `ExtraSync-v0.1.1-android.apk`。
 2. 在 Android 手机上打开 APK。
@@ -57,6 +59,7 @@
 - 从 Android 媒体库发送照片 manifest 批次。
 - 上传桌面端要求的原始照片。
 - 支持自动连续同步和停止。
+- 通过本地记录的终态项目实现续传跳过，识别键为 `server_id + root_id + device_id + item_id`。
 - 保留“相似照片”入口作为后续功能占位，但当前不实装。
 
 当前手机端不做本机重复照片扫描、不做清理复核、不删除或整理手机相册。
